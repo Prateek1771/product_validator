@@ -308,7 +308,7 @@ flowchart TB
 | Token | Dark | Light | Use |
 |---|---|---|---|
 | `bg` / `panel` / `line` | `#07090c` / `#0c1016` / `#1b2330` | `#f5f4ef` / `#fff` / `#e3e1d8` | surfaces |
-| `fg` / `dim` / `faint` | `#d7dee8` / `#7b8797` / `#4a5566` | `#0d0f12` / `#5a6070` / `#9a9fab` | text |
+| `fg` / `dim` / `faint` | `#d7dee8` / `#9aa5b4` / `#7a8494` | `#0d0f12` / `#4c5261` / `#666b7a` | text (`faint` is kept ≥4.5:1 for WCAG AA) |
 | `amber` | `#ffb000` | `#a36400` | accent, focus, brand |
 | `up` / `down` | `#20d38a` / `#ff5a5f` | `#0f8a57` / `#d1343b` | verified or low impact / alert or high impact |
 | `info` / `violet` | `#4cc3ff` / `#a78bfa` | `#0b73b8` / `#6d4bd8` | web / planner, synthesizer, tags |

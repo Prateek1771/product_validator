@@ -15,7 +15,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.15fr_1fr]">
       <section className="grid-bg relative hidden flex-col border-r border-line bg-panel p-10 lg:flex">
-        <Link href="/" aria-label="MKT·INTEL home"><Brand /></Link>
+        <Link href="/"><Brand /></Link>
         <div className="mt-auto max-w-xl">
           <p className="label"><span className="text-amber">●</span> agentic market intelligence</p>
           <h1 className="mt-3 text-4xl leading-[1.1] font-semibold tracking-tight">
@@ -26,7 +26,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
       </section>
       <section className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <Link href="/" className="mb-10 block lg:hidden" aria-label="MKT·INTEL home"><Brand /></Link>
+          <Link href="/" className="mb-10 block lg:hidden"><Brand /></Link>
           <LoginForm oauthError={error ? String(error) : undefined} />
         </div>
       </section>

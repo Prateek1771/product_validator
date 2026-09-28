@@ -80,7 +80,7 @@ export default function Landing() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd() }} />
       <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
         <nav className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4" aria-label="Main">
-          <Link href="/" aria-label="MKT·INTEL home"><Brand /></Link>
+          <Link href="/"><Brand /></Link>
           <div className="hidden items-center gap-5 font-mono text-[11px] tracking-wider text-dim uppercase md:flex">
             <a href="#how" className="hover:text-fg">How it works</a>
             <a href="#features" className="hover:text-fg">Features</a>
@@ -230,7 +230,7 @@ export default function Landing() {
           </dl>
           <p className="mt-4 text-[13px] text-dim">
             The full architecture, data model and decision rules are documented in the{" "}
-            <a href={`${REPO_URL}/blob/main/docs/ARCHITECTURE.md`} target="_blank" rel="noreferrer" className="text-amber hover:underline">architecture guide</a>.
+            <a href={`${REPO_URL}/blob/main/docs/ARCHITECTURE.md`} target="_blank" rel="noreferrer" className="text-amber underline underline-offset-2">architecture guide</a>.
           </p>
         </section>
 

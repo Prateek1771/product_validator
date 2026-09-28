@@ -10,8 +10,8 @@
   --line: #1b2330;
   --line-2: #273142;
   --fg: #d7dee8;
-  --dim: #7b8797;
-  --faint: #4a5566;
+  --dim: #9aa5b4;
+  --faint: #7a8494;   /* ≥4.5:1 on every dark surface */
   --amber: #ffb000;
   --amber-ink: #1a1200;
   --amber-soft: #ffb00014;
@@ -34,8 +34,8 @@
   --line: #e3e1d8;
   --line-2: #d4d1c5;
   --fg: #0d0f12;
-  --dim: #5a6070;
-  --faint: #9a9fab;
+  --dim: #4c5261;
+  --faint: #666b7a;   /* ≥4.5:1 on every paper surface */
   --amber: #a36400;
   --amber-ink: #ffffff;
   --amber-soft: #a3640012;
@@ -59,8 +59,8 @@
     --line: #e3e1d8;
     --line-2: #d4d1c5;
     --fg: #0d0f12;
-    --dim: #5a6070;
-    --faint: #9a9fab;
+    --dim: #4c5261;
+    --faint: #666b7a;   /* ≥4.5:1 on every paper surface */
     --amber: #a36400;
     --amber-ink: #ffffff;
     --amber-soft: #a3640012;
