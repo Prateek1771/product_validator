@@ -44,6 +44,7 @@ RUNS: dict[str, Run] = {}
 class ResearchIn(BaseModel):
     query: str = Field(min_length=3, max_length=2000)
     mode: Literal["deep", "web", "company", "market"] = "deep"
+    playbook: Literal["brief", "profile", "pricing", "battlecard"] = "brief"
 
 
 def now() -> str:
@@ -78,7 +79,7 @@ async def persist(run_id: str, user_id: str, s: dict) -> str:
     return row["id"]
 
 
-async def execute(run_id: str, query: str, mode: str):
+async def execute(run_id: str, query: str, mode: str, playbook: str = "brief"):
     run = RUNS[run_id]
 
     async def emit(ev: dict):
@@ -97,9 +98,9 @@ async def execute(run_id: str, query: str, mode: str):
     usage.run_emit.set(emit)
     t0 = time.time()
     try:
-        final = await graph.ainvoke({"user_request": query, "mode": mode}, config={
+        final = await graph.ainvoke({"user_request": query, "mode": mode, "playbook": playbook}, config={
             "configurable": {"emit": emit}, "recursion_limit": 40,
-            "run_name": "research", "tags": [mode], "metadata": {"run_id": run_id, "user_id": run.user_id}})  # LangSmith
+            "run_name": "research", "tags": [mode, playbook], "metadata": {"run_id": run_id, "user_id": run.user_id}})  # LangSmith
         report_id = await persist(run_id, run.user_id, final)
         await emit({"type": "done", "report_id": report_id})
         await db.update("research_runs", run_id, {"status": "complete", "updated_at": now(), "state": {
@@ -125,9 +126,9 @@ async def health():
 
 @app.post("/research")
 async def start_research(body: ResearchIn, user: dict = Depends(current_user)):
-    [row] = await db.insert("research_runs", {"user_id": user["id"], "query": body.query, "mode": body.mode})
+    [row] = await db.insert("research_runs", {"user_id": user["id"], "query": body.query, "mode": body.mode, "playbook": body.playbook})
     RUNS[row["id"]] = Run(user_id=user["id"])
-    RUNS[row["id"]].task = asyncio.create_task(execute(row["id"], body.query, body.mode))
+    RUNS[row["id"]].task = asyncio.create_task(execute(row["id"], body.query, body.mode, body.playbook))
     return {"id": row["id"]}
 
 

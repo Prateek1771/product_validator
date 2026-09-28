@@ -71,8 +71,13 @@ Before calling a change done, run pytest, tsc, eslint and `next build`.
 - **Graph node:** write the function in `graph.py` under `@node("name")`, add it to `STATUS`, wire its edges in `build_graph()`, and add a `CODE` entry in `frontend/components/research/AgentLog.tsx`.
 - **Web provider:** write `_search_x(c, key, byok, ...)` / `_scrape_x` in `tools.py`, then add it to `SEARCH` / `SCRAPE`, `client()` and `NAMES`. Register it in `keys.py` (`WEB_PROVIDERS`, `platform_key`, `VALIDATE`), add it to the migration's provider check, and to `/system` in `main.py` and `WEB` in `SettingsView.tsx`.
 - **LLM provider:** add a branch to `llm.chat()`, entries in `keys.LLM_PROVIDERS`, `MODEL_ENDPOINTS` and `_parse_models`, a new migration widening the provider checks, and a row in `LLM` in `SettingsView.tsx`.
+- **Playbook:** register a `Playbook` in `backend/app/playbooks.py` (planner hint, a pydantic schema that uses lists only, since OpenAI strict mode rejects dicts, a prompt, and a markdown renderer). Add its id to `ResearchIn.playbook` in `main.py` and to a migration that widens the `research_runs.playbook` check. On the frontend, add it to `lib/playbooks.ts`, its type to `lib/types.ts`, and a view in `components/research/Deliverable.tsx`.
 - **Page:** create `app/(app)/<route>/page.tsx` using `PageTitle` + `Panel`, then add a `lib/nav.ts` entry, which also gives it a hotkey and a palette entry.
 - **Column or table:** create a new `migrations/00N_*.sql` and apply it with `scripts/sql.py`. Don't edit applied migrations.
+
+## Marketing skills
+
+`.claude/skills/` holds skills installed from `coreyhaines31/marketingskills` (competitor-profiling, competitors, pricing, customer-research, programmatic-seo, schema, cro, analytics). They are reference frameworks: the playbooks distil `competitor-profiling`, `pricing` and `competitors`. Read the relevant one before changing a playbook's prompt or schema.
 
 ## UI verification
 

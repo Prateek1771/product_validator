@@ -7,6 +7,7 @@ import { Kbd } from "@/components/term";
 import { startResearch } from "@/lib/api";
 import { NAV } from "@/lib/nav";
 import { useHotkeys } from "@/lib/useHotkeys";
+import { PLAYBOOKS, type PlaybookId } from "@/lib/playbooks";
 import type { Mode } from "@/lib/types";
 
 export const MODES: { id: Mode; label: string; hint: string }[] = [
@@ -23,6 +24,7 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
   const dialog = useRef<HTMLDialogElement>(null);
   const [q, setQ] = useState("");
   const [mode, setMode] = useState<Mode>("deep");
+  const [playbook, setPlaybook] = useState<PlaybookId>("brief");
   const [sel, setSel] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +47,7 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
   const items = useMemo<Item[]>(() => {
     const needle = q.trim().toLowerCase();
     const out: Item[] = [];
-    if (needle.length >= 3) out.push({ id: "run", group: "Research", label: q.trim(), hint: `run ${mode}`, icon: <Sparkles className="size-3.5 text-amber" /> });
+    if (needle.length >= 3) out.push({ id: "run", group: "Research", label: q.trim(), hint: `run ${mode}${playbook === "brief" ? "" : ` · ${playbook}`}`, icon: <Sparkles className="size-3.5 text-amber" /> });
     for (const n of NAV) {
       if (!needle || n.label.toLowerCase().includes(needle)) out.push({ id: n.href, group: "Go to", label: n.label, hint: n.key, icon: <n.icon className="size-3.5" />, href: n.href });
     }
@@ -53,7 +55,7 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
       if (!needle || r.query.toLowerCase().includes(needle)) out.push({ id: r.id, group: "Recent runs", label: r.query, icon: <History className="size-3.5" />, href: `/research/${r.id}` });
     }
     return out.slice(0, 14);
-  }, [q, mode, recent]);
+  }, [q, mode, playbook, recent]);
 
   async function runItem(it: Item) {
     if (it.href) {
@@ -64,7 +66,7 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
     setBusy(true);
     setError(null);
     try {
-      const id = await startResearch(q.trim(), mode);
+      const id = await startResearch(q.trim(), mode, playbook);
       close();
       router.push(`/research/${id}`);
     } catch (e) {
@@ -77,7 +79,8 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
   function onKey(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(items.length - 1, s + 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(0, s - 1)); }
-    else if (e.key === "Tab") { e.preventDefault(); setMode((m) => MODES[(MODES.findIndex((x) => x.id === m) + (e.shiftKey ? 3 : 1)) % 4].id); }
+    else if (e.key === "Tab" && e.shiftKey) { e.preventDefault(); setPlaybook((p) => PLAYBOOKS[(PLAYBOOKS.findIndex((x) => x.id === p) + 1) % PLAYBOOKS.length].id); }
+    else if (e.key === "Tab") { e.preventDefault(); setMode((m) => MODES[(MODES.findIndex((x) => x.id === m) + 1) % MODES.length].id); }
     else if (e.key === "Enter" && items[sel] && !busy) { e.preventDefault(); runItem(items[sel]); }
   }
 
@@ -92,14 +95,24 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
                className="h-12 min-w-0 flex-1 bg-transparent font-mono text-[14px] outline-none placeholder:text-faint" />
         {busy && <Loader2 className="size-4 animate-spin text-amber" />}
       </div>
-      <div className="flex items-center gap-1 border-b border-line px-3 py-2" role="radiogroup" aria-label="Research mode">
+      <div className="flex flex-wrap items-center gap-1 border-b border-line px-3 py-2">
+        <span role="radiogroup" aria-label="Research mode" className="flex items-center gap-1">
         {MODES.map((m) => (
           <button key={m.id} role="radio" aria-checked={mode === m.id} onClick={() => setMode(m.id)} title={m.hint}
                   className={`rounded-sm px-2 py-1 font-mono text-[10px] font-semibold tracking-wider ${mode === m.id ? "bg-amber text-amber-ink" : "text-dim hover:text-fg"}`}>
             {m.label}
           </button>
         ))}
-        <span className="ml-auto hidden font-mono text-[10px] text-faint sm:inline">{MODES.find((m) => m.id === mode)?.hint}</span>
+        </span>
+        <span className="mx-1 h-4 w-px bg-line" aria-hidden />
+        <span role="radiogroup" aria-label="Deliverable" className="flex items-center gap-1">
+          {PLAYBOOKS.map((p) => (
+            <button key={p.id} role="radio" aria-checked={playbook === p.id} onClick={() => setPlaybook(p.id)} title={p.hint}
+                    className={`rounded-sm px-2 py-1 font-mono text-[10px] font-semibold tracking-wider ${playbook === p.id ? "bg-info text-bg" : "text-dim hover:text-fg"}`}>
+              {p.label}
+            </button>
+          ))}
+        </span>
       </div>
       {error && <p role="alert" className="border-b border-line bg-down-soft px-4 py-2 font-mono text-[12px] text-down">{error}</p>}
       <ul role="listbox" className="max-h-[50vh] overflow-y-auto py-1">
@@ -123,6 +136,7 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
         <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
         <span className="flex items-center gap-1"><Kbd>↵</Kbd> run</span>
         <span className="flex items-center gap-1"><Kbd>Tab</Kbd> mode</span>
+        <span className="flex items-center gap-1"><Kbd>⇧Tab</Kbd> output</span>
         <span className="ml-auto flex items-center gap-1"><Kbd>Esc</Kbd> close</span>
       </footer>
     </dialog>

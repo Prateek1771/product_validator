@@ -9,6 +9,7 @@ Ask a question like *"What changed in Anthropic's API pricing and models recentl
 ## Features
 
 - **Four research modes.** *Deep* (multi-step, with Jev verification loops), *Web* (fast single pass), *Company* (one company in depth) and *Market* (competitive comparison).
+- **Playbooks.** Choose what a run produces: the default change *brief*, a *competitor profile* (comparable profiles for each company plus a positioning map), a *pricing teardown* (tiers, value metric, dated price changes, a comparison matrix, and a pricing-page rubric scored for human buyers and for AI agents) or a *battlecard* (where each side wins, objection handling, landmine questions, who should pick which). The frameworks are adapted from [marketingskills](https://www.skills.sh/coreyhaines31/marketingskills).
 - **Live agent log.** Every plan step, search, crawl, provider switch and decision streams over SSE.
 - **Typed decisions.** For each change, Jev answers four questions: *is it real?* (probability), *which type?* (a probability for each type), *how big is the impact?* (0–100) and *how strong is the evidence?* It also returns who is affected. The app then maps the decision to **alert / investigate / monitor / ignore**.
 - **A brief with receipts.** KPI tiles, executive summary, key changes with impact and confidence meters, quotes, contradictions and every source.

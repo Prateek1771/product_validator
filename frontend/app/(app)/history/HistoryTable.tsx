@@ -4,10 +4,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Empty, Kbd, STATUS_TONE, Tag } from "@/components/term";
 import { timeAgo } from "@/lib/format";
+import { playbookLabel } from "@/lib/playbooks";
 import { useHotkeys } from "@/lib/useHotkeys";
 
 export type HistoryRow = {
-  id: string; query: string; mode: string; status: string; created_at: string; duration: number | null;
+  id: string; query: string; mode: string; playbook?: string; status: string; created_at: string; duration: number | null;
   changes: { count: number }[]; sources: { count: number }[];
 };
 
@@ -67,7 +68,7 @@ export function HistoryTable({ rows }: { rows: HistoryRow[] }) {
                       {i === sel && <span className="mr-1 font-mono text-amber">›</span>}{r.query}
                     </a>
                   </td>
-                  <td className="py-2 pr-3 font-mono text-[11px] text-dim uppercase">{r.mode}</td>
+                  <td className="py-2 pr-3 font-mono text-[11px] whitespace-nowrap text-dim uppercase">{r.mode}{r.playbook && r.playbook !== "brief" && <Tag tone="info" className="ml-1.5">{playbookLabel(r.playbook)}</Tag>}</td>
                   <td className="py-2 pr-3 text-right font-mono text-[12px]">{r.sources?.[0]?.count ?? 0}</td>
                   <td className="py-2 pr-3 text-right font-mono text-[12px]">{r.changes?.[0]?.count ?? 0}</td>
                   <td className="py-2 pr-3 text-right font-mono text-[12px] text-dim">{r.duration != null ? `${Math.round(r.duration)}s` : "—"}</td>

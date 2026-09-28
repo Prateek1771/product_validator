@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Blocks, ImpactTag, StatTile, Tag } from "@/components/term";
+import { playbookLabel } from "@/lib/playbooks";
+import { DeliverableView } from "./Deliverable";
 import type { Change } from "@/lib/types";
 import type { RunState } from "./useRun";
 
@@ -8,6 +11,7 @@ const TILE_TONES = ["amber", "info", "up", "violet"] as const;
 
 export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) {
   const r = run.report;
+  const [tab, setTab] = useState<"deliverable" | "brief">("deliverable");
   if (!r) {
     return (
       <div className="space-y-4 p-4 md:p-6" aria-busy>
@@ -43,6 +47,19 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
       )}
       <h1 className="mt-2 text-2xl leading-tight font-semibold tracking-tight md:text-[30px]">{r.title}</h1>
 
+      {r.deliverable && (
+        <div role="tablist" aria-label="Report view" className="mt-4 flex gap-1 border-b border-line">
+          {(["deliverable", "brief"] as const).map((t) => (
+            <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
+                    className={`-mb-px border-b-2 px-3 py-2 font-mono text-[11px] font-semibold tracking-wider transition ${
+                      tab === t ? "border-amber text-amber" : "border-transparent text-dim hover:text-fg"}`}>
+              {t === "brief" ? "CHANGE BRIEF" : playbookLabel(r.deliverable?.playbook)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {r.deliverable && tab === "deliverable" ? <div className="mt-5"><DeliverableView d={r.deliverable} /></div> : <>
       {r.highlights.length > 0 && (
         <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line md:grid-cols-4">
           {r.highlights.slice(0, 4).map((h, i) => (
@@ -111,6 +128,7 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
           </ol>
         </div>
       </section>
+      </>}
     </article>
   );
 }

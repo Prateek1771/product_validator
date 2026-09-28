@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { CornerDownLeft, Loader2 } from "lucide-react";
 import { MODES } from "@/components/shell/CommandPalette";
 import { startResearch } from "@/lib/api";
+import { PLAYBOOKS, type PlaybookId } from "@/lib/playbooks";
 import type { Mode } from "@/lib/types";
 
-const EXAMPLES = [
-  "What changed in Anthropic's API pricing and models recently?",
-  "OpenAI vs Anthropic vs Google: what launched this month?",
-  "Did Google change Gemini API rate limits or free tier?",
-  "How is AWS Bedrock positioning against Azure AI Foundry?",
+const EXAMPLES: { q: string; playbook: PlaybookId }[] = [
+  ...PLAYBOOKS.map((p) => ({ q: p.example, playbook: p.id })),
+  { q: "OpenAI vs Anthropic vs Google: what launched this month?", playbook: "brief" },
+  { q: "Did Google change Gemini API rate limits or free tier?", playbook: "brief" },
 ];
 
 export function PromptHero({ initial = "", compact = false }: { initial?: string; compact?: boolean }) {
@@ -19,6 +19,7 @@ export function PromptHero({ initial = "", compact = false }: { initial?: string
   const input = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState(initial);
   const [mode, setMode] = useState<Mode>("deep");
+  const [playbook, setPlaybook] = useState<PlaybookId>("brief");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +29,7 @@ export function PromptHero({ initial = "", compact = false }: { initial?: string
     setBusy(true);
     setError(null);
     try {
-      router.push(`/research/${await startResearch(q.trim(), mode)}`);
+      router.push(`/research/${await startResearch(q.trim(), mode, playbook)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start research");
       setBusy(false);
@@ -56,14 +57,25 @@ export function PromptHero({ initial = "", compact = false }: { initial?: string
         ))}
         <span className="ml-2 hidden font-mono text-[11px] text-faint sm:inline">{"// "}{MODES.find((m) => m.id === mode)?.hint}</span>
       </div>
+      <div className="mt-1 flex flex-wrap items-center gap-1" role="radiogroup" aria-label="Deliverable">
+        <span className="mr-1 font-mono text-[10px] text-faint">OUT</span>
+        {PLAYBOOKS.map((p) => (
+          <button key={p.id} type="button" role="radio" aria-checked={playbook === p.id} onClick={() => setPlaybook(p.id)} title={p.hint}
+                  className={`rounded-sm border px-2 py-1 font-mono text-[10px] font-semibold tracking-wider transition ${
+                    playbook === p.id ? "border-info bg-info-soft text-info" : "border-line text-dim hover:text-fg"}`}>
+            {p.label}
+          </button>
+        ))}
+        <span className="ml-2 hidden font-mono text-[11px] text-faint sm:inline">{"// "}{PLAYBOOKS.find((p) => p.id === playbook)?.hint}</span>
+      </div>
       {error && <p role="alert" className="mt-2 font-mono text-[12px] text-down">ERR {error}</p>}
       {!compact && (
         <ul className="mt-4 grid gap-1 sm:grid-cols-2">
           {EXAMPLES.map((ex) => (
-            <li key={ex}>
-              <button type="button" onClick={() => { setQ(ex); input.current?.focus(); }}
+            <li key={ex.q}>
+              <button type="button" onClick={() => { setQ(ex.q); setPlaybook(ex.playbook); input.current?.focus(); }}
                       className="w-full truncate rounded px-2 py-1.5 text-left font-mono text-[12px] text-dim transition hover:bg-hover hover:text-fg">
-                <span className="text-faint">$ try:</span> {ex}
+                <span className="text-faint">$ {ex.playbook === "brief" ? "try" : ex.playbook}:</span> {ex.q}
               </button>
             </li>
           ))}

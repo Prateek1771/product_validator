@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bookmark, BookmarkCheck, X } from "lucide-react";
 import { createBrowserClient } from "@insforge/sdk/ssr";
-import { Empty } from "@/components/term";
+import { Empty, Tag } from "@/components/term";
+import { playbookLabel } from "@/lib/playbooks";
 import { timeAgo } from "@/lib/format";
 
 export type ReportRow = {
   id: string; run_id: string; title: string; saved: boolean; created_at: string;
-  summary: { executive_summary?: string; highlights?: { value: string; label: string }[]; recommended_actions?: string[] };
+  summary: { executive_summary?: string; highlights?: { value: string; label: string }[]; recommended_actions?: string[]; deliverable?: { playbook: string } };
 };
 
 const insforge = typeof window !== "undefined" ? createBrowserClient() : null;
@@ -47,6 +48,7 @@ export function ReportsTable({ rows: initial }: { rows: ReportRow[] }) {
                   {r.saved ? <BookmarkCheck className="size-4 text-amber" /> : <Bookmark className="size-4" />}
                 </button>
                 <Link href={`/research/${r.run_id}`} className="min-w-0 flex-1 truncate hover:text-amber" onFocus={() => setPreview(r)}>{r.title}</Link>
+                {r.summary.deliverable && <Tag tone="info">{playbookLabel(r.summary.deliverable.playbook)}</Tag>}
                 <span className="hidden gap-3 font-mono text-[11px] text-dim sm:flex">
                   {r.summary.highlights?.slice(0, 2).map((h, i) => <span key={i} className="text-amber">{h.value}</span>)}
                 </span>

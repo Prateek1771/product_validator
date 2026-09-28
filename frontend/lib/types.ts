@@ -20,7 +20,41 @@ export type Report = {
   title: string; executive_summary: string; why_it_matters: string; recommended_actions: string[]; markdown: string;
   highlights: { label: string; value: string; caption: string }[];
   key_changes: { change_index: number; headline: string; bullets: string[]; quote: string | null; quote_source: string | null }[];
+  deliverable?: Deliverable;
 };
+
+// Mirrors backend/app/playbooks.py
+export type CompetitorProfiles = {
+  landscape: string; takeaways: string[]; opportunities: string[];
+  companies: {
+    name: string; domain: string | null; tagline: string; positioning: string; target_customers: string[];
+    pricing_tiers: { name: string; price: string; unit: string; includes: string[] }[];
+    key_features: string[]; integrations: string[]; notable_customers: string[];
+    review_themes: { theme: string; sentiment: "positive" | "negative" | "mixed"; quote: string | null; source_url: string | null }[];
+    strengths: string[]; weaknesses: string[]; recent_changes: string[];
+  }[];
+  positioning_map: { x_axis: string; y_axis: string; points: { name: string; x: number; y: number }[] };
+};
+export type PricingTeardown = {
+  companies: {
+    name: string; value_metric: string; free_tier: string;
+    tiers: { name: string; price: string; billing: string; limits: string; notes: string | null }[];
+    changes: { date: string | null; what: string; direction: "up" | "down" | "new" | "removed" }[];
+    page_rubric: { dimension: string; verdict: "pass" | "partial" | "gap"; note: string }[];
+  }[];
+  comparison: { dimension: string; values: string[] }[]; insights: string[]; recommendation: string;
+};
+export type Battlecard = {
+  subject: string; competitor: string; tldr: string; subject_wins: string[]; competitor_wins: string[];
+  features: { feature: string; subject: string; competitor: string }[]; pricing_notes: string;
+  objections: { objection: string; response: string }[]; landmines: string[];
+  pick_subject_if: string[]; pick_competitor_if: string[]; migration: string;
+  proof_points: { claim: string; source_url: string | null }[];
+};
+export type Deliverable =
+  | { playbook: "profile"; label: string; data: CompetitorProfiles }
+  | { playbook: "pricing"; label: string; data: PricingTeardown }
+  | { playbook: "battlecard"; label: string; data: Battlecard };
 export type Task = { topic: string; query: string; include_domains: string[]; freshness: string | null };
 
 export type RunEvent = { t: number } & (

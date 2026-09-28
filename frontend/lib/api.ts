@@ -1,4 +1,5 @@
 import type { KeyProvider, LlmProvider, Mode, ModelInfo, RunEvent, SystemStatus, UserSettings } from "./types";
+import type { PlaybookId } from "./playbooks";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -20,11 +21,11 @@ async function authed(path: string, init: RequestInit = {}, retry = true): Promi
   return res;
 }
 
-export async function startResearch(query: string, mode: Mode): Promise<string> {
+export async function startResearch(query: string, mode: Mode, playbook: PlaybookId = "brief"): Promise<string> {
   const res = await authed("/research", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, mode }),
+    body: JSON.stringify({ query, mode, playbook }),
   });
   return (await res.json()).id;
 }

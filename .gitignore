@@ -13,7 +13,8 @@ node_modules/
 .agent
 .agents
 .augment
-.claude
+.claude/*
+!.claude/skills/
 .cline
 .github/copilot*
 .kilocode

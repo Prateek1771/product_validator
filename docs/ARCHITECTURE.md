@@ -104,11 +104,13 @@ stateDiagram-v2
 
 | Node | Model / tool | Reads | Writes |
 |---|---|---|---|
-| `planner` | OpenAI → `Plan` | `user_request`, `mode` | `entities[]`, `research_plan[]` (≤6 tasks: topic, query, include_domains, freshness), `iteration=0` |
+| `planner` | OpenAI → `Plan` | `user_request`, `mode`, `playbook` | `entities[]`, `research_plan[]` (≤6 tasks, or ≤8 for a non-brief playbook: topic, query, include_domains, freshness), `iteration=0` |
 | `researcher` | `tools.search` + `tools.scrape` | plan (iteration 0) or `research_gaps` | appends up to 5 new sources per task; the top 2 are crawled (`SCRAPES_PER_TASK`) |
 | `evidence_analyst` | OpenAI → `EvidenceSet` | all sources (≤8k chars each, 90k total) | `evidence[]`, `changes[]` (≤8), `contradictions[]`, `research_gaps[]` (≤3) |
 | `decision_engine` | `decisions.decide` ×(changes + 1): Jev or the LLM decision agent | changes + their claims | per change `decision`, `is_real_change`, `confidence`, `impact_score`, `evidence_quality`, `change_type`, `affected`, `recommended_action`; `decisions.needs_more_research` |
-| `synthesizer` | OpenAI → `Report` | changes, evidence | `report` (title, summary, highlights, key_changes, why_it_matters, actions, markdown) |
+| `synthesizer` | OpenAI → `Report`, then the playbook schema | changes, evidence, sources | `report` (title, summary, highlights, key_changes, why_it_matters, actions, markdown), plus `report.deliverable` for a non-brief playbook |
+
+**Playbooks** (`app/playbooks.py`) change what a run produces without changing the graph. Each one adds a planner hint that says which pages to research, and a pydantic schema. The synthesizer makes one extra strong-model call that fills the schema from the evidence and a source digest (≤60k chars), stores it as `report.deliverable = {playbook, label, data}`, and appends its markdown to the export. The playbooks are `profile` (competitor profiles and a positioning map), `pricing` (a teardown with a two-axis pricing-page rubric) and `battlecard` (A vs B). `brief` is the default and adds nothing. The frontend renders the deliverable in `components/research/Deliverable.tsx` as a tab next to the change brief.
 
 Each node is wrapped by `@node(name)`, which emits `node_start` (with its status) and `node_end` (with elapsed time and a state update). Nodes can emit `log` events, and every event is forwarded to SSE.
 

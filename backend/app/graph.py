@@ -7,7 +7,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
-from . import decisions, llm, tools
+from . import decisions, llm, playbooks, tools
 from .config import settings
 
 Topic = Literal["pricing", "models", "docs", "changelog", "news", "blog", "competitors", "other"]
@@ -17,6 +17,7 @@ ChangeType = ["pricing", "product", "model", "docs", "policy", "partnership", "o
 class IntelligenceState(TypedDict, total=False):
     user_request: str
     mode: str                  # deep | web | company | market
+    playbook: str              # brief | profile | pricing | battlecard (see playbooks.py)
     entities: list[dict]
     research_plan: list[dict]
     sources: list[dict]
@@ -47,7 +48,7 @@ class Task(BaseModel):
 
 class Plan(BaseModel):
     entities: list[Entity]
-    tasks: list[Task] = Field(description="3-6 focused research tasks")
+    tasks: list[Task] = Field(description="3-6 focused research tasks (up to 8 when a PLAYBOOK asks for per-company coverage)")
 
 
 class Claim(BaseModel):
@@ -137,13 +138,15 @@ MODE_HINT = {
 
 @node("planner")
 async def planner(state, emit):
+    pb = playbooks.get(state.get("playbook"))
     plan: Plan = await llm.structured(Plan, [
         ("system", "You plan market-intelligence research on tech/AI companies. Identify companies and their official domains, "
                    "then break the request into focused web search tasks. Use include_domains with official domains for "
-                   "pricing/docs/changelog/blog tasks; leave it empty for news and competitor tasks. " + MODE_HINT[state.get("mode", "deep")]),
+                   "pricing/docs/changelog/blog tasks; leave it empty for news and competitor tasks. " + MODE_HINT[state.get("mode", "deep")]
+                   + (" " + pb.planner_hint if pb.planner_hint else "")),
         ("user", state["user_request"]),
     ], role="fast")
-    tasks = [t.model_dump() for t in plan.tasks[:6]]
+    tasks = [t.model_dump() for t in plan.tasks[:pb.max_tasks]]
     models = {"fast": llm.resolve("fast").label(), "strong": llm.resolve("strong").label()}
     await emit({"type": "log", "node": "planner", "message": f"LLM · fast {models['fast']} · strong {models['strong']}"})
     await emit({"type": "log", "node": "planner", "message": f"Created research plan with {len(tasks)} steps"})
@@ -305,7 +308,30 @@ async def synthesizer(state, emit):
     ], role="strong")
     r = report.model_dump()
     r["markdown"] = to_markdown(r, state["changes"])
+    pb = playbooks.get(state.get("playbook"))
+    if pb.schema:
+        await emit({"type": "log", "node": "synthesizer", "message": f"Building {pb.label.lower()} deliverable"})
+        data = (await llm.structured(pb.schema, [
+            ("system", "You are a competitive-intelligence analyst. " + pb.prompt),
+            ("user", f"Request: {state['user_request']}\n\nCompanies: {state.get('entities', [])}\n\n"
+                     f"Evidence (claims with sources):\n{state['evidence']}\n\nDetected changes:\n{changes}\n\n"
+                     f"Sources:\n{_source_digest(state['sources'])}"),
+        ], role="strong")).model_dump()
+        r["deliverable"] = {"playbook": pb.id, "label": pb.label, "data": data}
+        r["markdown"] += "\n\n" + pb.to_markdown(data)
     return {"report": r}
+
+
+def _source_digest(sources: list[dict], budget: int = 60_000) -> str:
+    """Page bodies for deliverables that need detail beyond extracted claims (tiers, features, review quotes)."""
+    out = []
+    for s in sources:
+        chunk = f"- {s['title']} — {s['url']} ({s['type']})\n{(s.get('content') or s.get('snippet') or '')[:5000]}\n"
+        if budget - len(chunk) < 0:
+            break
+        budget -= len(chunk)
+        out.append(chunk)
+    return "\n".join(out)
 
 
 def to_markdown(r: dict, changes: list[dict]) -> str:

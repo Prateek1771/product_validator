@@ -6,7 +6,7 @@ export const metadata = { title: "History" };
 
 export default async function HistoryPage() {
   const { data } = await (await serverClient()).database
-    .from("research_runs").select("id, query, mode, status, created_at, duration:state->duration, changes(count), sources(count)")
+    .from("research_runs").select("id, query, mode, playbook, status, created_at, duration:state->duration, changes(count), sources(count)")
     .order("created_at", { ascending: false }).limit(200);
   const rows = (data ?? []) as HistoryRow[];
   return (
