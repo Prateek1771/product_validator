@@ -2,7 +2,7 @@
 
 **Track the AI industry. Find what changed. Understand the impact. Decide what to do.**
 
-Ask a question like *"What changed in Anthropic's API pricing and models recently?"* A team of agents plans the research, searches and crawls the live web, extracts evidence, has **Jev** make typed, confidence-scored decisions about every change, loops back when evidence is weak, and hands you a sourced executive brief. You watch it happen in a terminal-style interface.
+Ask a question like *"What changed in Anthropic's API pricing and models recently?"* A team of agents plans the research, searches and crawls the live web, extracts evidence, has **Jev** make typed, corroborated decisions, and writes a sourced brief that explains the change, the confidence, and the likely impact.
 
 ![Research view](docs/screens/research.png)
 
@@ -10,12 +10,12 @@ Ask a question like *"What changed in Anthropic's API pricing and models recentl
 
 - **Four research modes.** *Deep* (multi-step, with Jev verification loops), *Web* (fast single pass), *Company* (one company in depth) and *Market* (competitive comparison).
 - **Live agent log.** Every plan step, search, crawl, provider switch and decision streams over SSE.
-- **Typed decisions.** For each change, Jev answers four questions: *is it real?* (probability), *which type?* (a probability for each type), *how big is the impact?* (0–100) and *how strong is the evidence?* It also returns who is affected. The app then maps the decision to **alert / investigate / monitor / ignore**.
+- **Typed decisions.** For each change, Jev answers four questions: *is it real?* (probability), *which type?* (a probability for each type), *how big is the impact?* (0–100) and *how strong is the evidence?* (0–100).
 - **A brief with receipts.** KPI tiles, executive summary, key changes with impact and confidence meters, quotes, contradictions and every source.
 - **Web data that keeps working.** Context.dev is tried first, then Tavily, then Firecrawl, with a credit breaker that skips a provider once it runs out.
 - **System monitoring.** Provider health, live credit balances, fallback routing and per-run usage, with optional LangSmith tracing.
 - **Signals, watchlist and history.** Verified changes across all runs, ranked by impact, with an auto-discovered company watchlist.
-- **Bring your own keys and models.** Paste your own OpenAI, Anthropic, Gemini or OpenRouter key and choose a **fast** model (planning and extraction) and a **strong** model (the brief) from the provider's live model list. You can also add your own Context.dev, Tavily or Firecrawl keys. Your keys are encrypted at rest and tried first, with the platform keys as fallback. An OpenRouter key unlocks every model plus Jev. Without one, decisions run on an **LLM decision agent** that uses your key and produces the same typed outputs, so Jev isn't required.
+- **Bring your own keys and models.** Paste your own OpenAI, Anthropic, Gemini or OpenRouter key and choose a **fast** model (planning and extraction) and a **strong** model (the brief) from the provider list.
 - **Keyboard first.** `Ctrl K` command palette, `1–7` to navigate, `j/k` to move through lists. Dark "terminal" and light "paper" themes.
 
 | | |
@@ -97,7 +97,7 @@ For Google/GitHub sign-in, add `<NEXT_PUBLIC_APP_URL>/api/auth/callback` to the 
 
 ## Deploy
 
-- **Railway (backend).** Create a service from `backend/`; `Dockerfile` and `railway.json` are included, with a `/health` healthcheck. Set the backend env vars and set `CORS_ORIGINS` to the Vercel URL. **Keep 1 replica**, because live run streams and the meters live in process memory.
+- **Railway (backend).** Create a service from `backend/`; `Dockerfile` and `railway.json` are included, with a `/health` healthcheck. Set the backend env vars and set `CORS_ORIGINS` to the Vercel URL.
 - **Vercel (frontend).** Import `frontend/` and set the four `NEXT_PUBLIC_*` vars (`NEXT_PUBLIC_API_URL` is the Railway URL). Add the production OAuth callback URL in InsForge.
 
 ## Project structure
@@ -123,6 +123,3 @@ CLAUDE.md     guide for coding agents working in this repo
 - Slack and email alerts for high-impact changes.
 - Redis pub/sub for the run registry and meters, so the backend can run more than one replica.
 - Keep usage history across deploys.
-#   p r o d u c t _ v a l i d a t o r  
- #   p r o d u c t _ v a l i d a t o r  
- 
