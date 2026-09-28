@@ -37,7 +37,7 @@ class Run:
     changed: asyncio.Condition = field(default_factory=asyncio.Condition)
 
 
-# ponytail: in-process run registry, single Railway replica. Move to Redis pub/sub before scaling out.
+# ponytail: in-process run registry, single Render instance. Move to Redis pub/sub before scaling out.
 RUNS: dict[str, Run] = {}
 
 

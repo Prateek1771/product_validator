@@ -3,7 +3,7 @@
 Users ask what changed at an AI company. A LangGraph agent plans the research, searches and crawls the web (Context.dev, falling back to Tavily and then Firecrawl), extracts claims (OpenAI), scores each detected change with **Jev** typed decisions (via OpenRouter), loops back when Jev says more evidence is needed, and writes a sourced brief. Progress streams live to a terminal-style Next.js UI. Auth and data live in InsForge.
 
 ```
-backend/    FastAPI + LangGraph + LangChain (Python 3.12, uv)   -> Railway
+backend/    FastAPI + LangGraph + LangChain (Python 3.12, uv)   -> Render (Docker, render.yaml)
 frontend/   Next.js 16 App Router + Tailwind v4 + @insforge/sdk -> Vercel
 docs/       ARCHITECTURE.md (as built) + original concept images
 ```
@@ -61,6 +61,7 @@ Before calling a change done, run pytest, tsc, eslint and `next build`.
 - **Jev:** call `POST https://openrouter.ai/api/alpha/decisions` (chat completions rejects it). `questions` is a dict of `{type: noul|choice|score, instructions, criteria}`. A score answer is a level index, so use `score_pct()` for 0–100.
 - **LLM:** always go through `llm.structured()`; never construct chat models in nodes. The platform LLM is OpenAI direct, and OpenRouter is only used for Jev or when a user picks OpenRouter models. `LLM_BASE_URL` no longer exists.
 - **BYOK tables** (`user_keys`, `user_llm`): RLS is on with **no policies** and all grants are revoked, so only the backend admin key can touch them. Never return `key_enc` or plaintext keys from an endpoint; the browser only ever sees `hint`. Rotating `SECRETS_KEY` makes stored user keys unreadable (they are treated as unset).
+- **Deploy:** the backend runs on Render from the root `render.yaml` Blueprint (Docker, `rootDir: backend`, `/health`). The frontend runs on Vercel from `frontend/`.
 - **One backend replica.** `RUNS` and the `usage` meters live in memory. Moving to Redis would be needed before scaling out.
 - **Secrets:** the root `.env` is for the backend and `frontend/.env.local` for the frontend. `INSFORGE_API_KEY` is a full admin key: server-only, never `NEXT_PUBLIC_*`. The frontend only gets the anon key.
 - **DB:** the schema lives in `backend/migrations/*.sql`. RLS gives `authenticated` users read access to their own rows only; the backend writes everything with the admin key. Users can update only `reports.saved` and their own `companies`. New tables need `user_id`, RLS and a select policy.

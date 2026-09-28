@@ -2,7 +2,7 @@
 
 **Track the AI industry. Find what changed. Understand the impact. Decide what to do.**
 
-Ask a question like *"What changed in Anthropic's API pricing and models recently?"* A team of agents plans the research, searches and crawls the live web, extracts evidence, has **Jev** make typed, corroborated decisions, and writes a sourced brief that explains the change, the confidence, and the likely impact.
+Ask a question like *"What changed in Anthropic's API pricing and models recently?"* A team of agents plans the research, searches and crawls the live web, extracts evidence, has **Jev** make typed, confidence-scored decisions about every change, loops back when evidence is weak, and hands you a sourced executive brief. You watch it happen in a terminal-style interface.
 
 ![Research view](docs/screens/research.png)
 
@@ -10,12 +10,12 @@ Ask a question like *"What changed in Anthropic's API pricing and models recentl
 
 - **Four research modes.** *Deep* (multi-step, with Jev verification loops), *Web* (fast single pass), *Company* (one company in depth) and *Market* (competitive comparison).
 - **Live agent log.** Every plan step, search, crawl, provider switch and decision streams over SSE.
-- **Typed decisions.** For each change, Jev answers four questions: *is it real?* (probability), *which type?* (a probability for each type), *how big is the impact?* (0–100) and *how strong is the evidence?* (0–100).
+- **Typed decisions.** For each change, Jev answers four questions: *is it real?* (probability), *which type?* (a probability for each type), *how big is the impact?* (0–100) and *how strong is the evidence?* It also returns who is affected. The app then maps the decision to **alert / investigate / monitor / ignore**.
 - **A brief with receipts.** KPI tiles, executive summary, key changes with impact and confidence meters, quotes, contradictions and every source.
 - **Web data that keeps working.** Context.dev is tried first, then Tavily, then Firecrawl, with a credit breaker that skips a provider once it runs out.
 - **System monitoring.** Provider health, live credit balances, fallback routing and per-run usage, with optional LangSmith tracing.
 - **Signals, watchlist and history.** Verified changes across all runs, ranked by impact, with an auto-discovered company watchlist.
-- **Bring your own keys and models.** Paste your own OpenAI, Anthropic, Gemini or OpenRouter key and choose a **fast** model (planning and extraction) and a **strong** model (the brief) from the provider list.
+- **Bring your own keys and models.** Paste your own OpenAI, Anthropic, Gemini or OpenRouter key and choose a **fast** model (planning and extraction) and a **strong** model (the brief) from the provider's live model list. You can also add your own Context.dev, Tavily or Firecrawl keys. Your keys are encrypted at rest and tried first, with the platform keys as fallback. An OpenRouter key unlocks every model plus Jev. Without one, decisions run on an **LLM decision agent** that uses your key and produces the same typed outputs, so Jev isn't required.
 - **Keyboard first.** `Ctrl K` command palette, `1–7` to navigate, `j/k` to move through lists. Dark "terminal" and light "paper" themes.
 
 | | |
@@ -28,7 +28,7 @@ Ask a question like *"What changed in Anthropic's API pricing and models recentl
 | Layer | Tech |
 |---|---|
 | Frontend | Next.js 16 (App Router), React 19, Tailwind CSS v4, lucide icons, deployed on **Vercel** |
-| API | FastAPI with SSE (`sse-starlette`), deployed on **Railway** |
+| API | FastAPI with SSE (`sse-starlette`), deployed on **Render** (Docker) |
 | Orchestration | **LangGraph** state graph, LangChain `ChatOpenAI` with structured output |
 | Reasoning | LLM gateway: platform OpenAI direct (`gpt-4o-mini` fast / `gpt-4.1` strong), or the user's own OpenAI / Anthropic / Gemini / OpenRouter key and models |
 | Decisions | **Jev** (`typesafe/jev-1.13`) through the OpenRouter Decisions API, or the LLM decision agent (same output shapes) |
@@ -97,8 +97,8 @@ For Google/GitHub sign-in, add `<NEXT_PUBLIC_APP_URL>/api/auth/callback` to the 
 
 ## Deploy
 
-- **Railway (backend).** Create a service from `backend/`; `Dockerfile` and `railway.json` are included, with a `/health` healthcheck. Set the backend env vars and set `CORS_ORIGINS` to the Vercel URL.
-- **Vercel (frontend).** Import `frontend/` and set the four `NEXT_PUBLIC_*` vars (`NEXT_PUBLIC_API_URL` is the Railway URL). Add the production OAuth callback URL in InsForge.
+- **Render (backend).** `render.yaml` at the repo root is a Blueprint for a Docker web service built from `backend/Dockerfile`, with a `/health` check. In Render, choose **New → Blueprint**, pick this repo and fill in the secret env vars it asks for, or use the Render MCP/CLI. Set `CORS_ORIGINS` to the Vercel URL. On the free plan, keep it awake with a free pinger (cron-job.org or UptimeRobot) hitting `/health` every 10 min. **Keep 1 instance**, because live run streams and the meters live in process memory.
+- **Vercel (frontend).** Import `frontend/` and set the four `NEXT_PUBLIC_*` vars (`NEXT_PUBLIC_API_URL` is the Render URL, e.g. `https://mkt-intel-api.onrender.com`). Add the production OAuth callback URL in InsForge.
 
 ## Project structure
 

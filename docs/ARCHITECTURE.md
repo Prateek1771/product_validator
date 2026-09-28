@@ -25,7 +25,7 @@ flowchart LR
   subgraph Vercel
     FE[Next.js 16 frontend<br/>SSR pages + proxy.ts]
   end
-  subgraph Railway
+  subgraph Render
     API[FastAPI<br/>SSE + run registry]
     G[[LangGraph agent]]
     API --> G
@@ -321,7 +321,7 @@ flowchart TB
 
 | Concern | Now | When it matters |
 |---|---|---|
-| Live streams and meters | in memory, **1 Railway replica** | Redis pub/sub + a shared counter store before scaling out |
+| Live streams and meters | in memory, **1 Render instance** | Redis pub/sub + a shared counter store before scaling out |
 | Token validation | 1 InsForge call per API request | verify the JWT locally with `JWT_PUBLIC_KEY` |
 | Web credits | Context.dev free tier 250; each search or scrape costs 1 | the fallback chain absorbs exhaustion; a Web-mode run uses about 18 calls |
 | Run cost | Jev about $0.00002 per decision; the LLM is the main cost | set `SCRAPES_PER_TASK` / `MAX_ITERATIONS` lower |
@@ -338,7 +338,7 @@ flowchart TB
 | `05_arch.png` Evidence pipeline | web → fetch → raw docs → extract → verify → verified event | the same pipeline; tables `sources → evidence → changes` |
 | `06_arch.png` Agentic loop | Jev "sufficient evidence?", with a research-more loop | `decision_engine` → `next_iteration`, capped at `MAX_ITERATIONS` |
 | `07_arch.png` LangGraph state | `IntelligenceState` + Firebase persistence | the same state fields; stored in `research_runs.state` + tables |
-| `08_arch.png` / `project_architecture.png` Implementation | Next.js API routes, NextAuth, Firestore | **FastAPI on Railway**, **InsForge Auth**, **InsForge Postgres**; Next.js is UI-only on Vercel |
+| `08_arch.png` / `project_architecture.png` Implementation | Next.js API routes, NextAuth, Firestore | **FastAPI on Render**, **InsForge Auth**, **InsForge Postgres**; Next.js is UI-only on Vercel |
 | `project_dashboard.png` Dashboard | light 3-column: steps / report tabs | replaced by the **terminal UI**: agent log / brief / inspector, ⌘K, ticker, dark and light themes |
 
 Additions not in the concepts: the Tavily/Firecrawl fallback with the credit breaker, the System monitoring page, per-run usage, and LangSmith tracing.
