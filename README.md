@@ -124,4 +124,5 @@ CLAUDE.md     guide for coding agents working in this repo
 - Redis pub/sub for the run registry and meters, so the backend can run more than one replica.
 - Keep usage history across deploys.
 #   p r o d u c t _ v a l i d a t o r  
+ #   p r o d u c t _ v a l i d a t o r  
  
