@@ -6,6 +6,8 @@ import { signOut } from "@/app/login/actions";
 import { SettingsView } from "./SettingsView";
 import { ThemePicker } from "./ThemePicker";
 
+export const metadata = { title: "Settings" };
+
 const STACK = [
   ["PLAN · ANALYZE · SYNTH", "LLM gateway: your key → platform OpenAI"],
   ["ORCHESTRATION", "LangGraph"],

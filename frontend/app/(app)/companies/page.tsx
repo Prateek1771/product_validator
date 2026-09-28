@@ -2,6 +2,8 @@ import { PageTitle, Panel } from "@/components/term";
 import { serverClient } from "@/lib/insforge";
 import { Watchlist, type WatchRow } from "./Watchlist";
 
+export const metadata = { title: "Companies" };
+
 type Change = WatchRow["changes"][number] & { company: string | null };
 
 export default async function CompaniesPage() {

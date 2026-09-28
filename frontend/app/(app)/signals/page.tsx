@@ -2,6 +2,8 @@ import { SignalsTable, type SignalRow } from "@/components/SignalsTable";
 import { PageTitle, Panel } from "@/components/term";
 import { serverClient } from "@/lib/insforge";
 
+export const metadata = { title: "Signals" };
+
 export default async function SignalsPage() {
   const { data } = await (await serverClient()).database
     .from("changes").select("id, run_id, company, change_type, title, summary, impact_score, confidence, recommended_action, created_at")

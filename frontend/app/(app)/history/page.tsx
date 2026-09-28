@@ -2,6 +2,8 @@ import { PageTitle, Panel } from "@/components/term";
 import { serverClient } from "@/lib/insforge";
 import { HistoryTable, type HistoryRow } from "./HistoryTable";
 
+export const metadata = { title: "History" };
+
 export default async function HistoryPage() {
   const { data } = await (await serverClient()).database
     .from("research_runs").select("id, query, mode, status, created_at, duration:state->duration, changes(count), sources(count)")

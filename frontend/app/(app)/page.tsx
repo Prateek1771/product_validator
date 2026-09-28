@@ -6,6 +6,8 @@ import { Blocks, Empty, Favicon, Panel, STATUS_TONE, Tag } from "@/components/te
 import { serverClient } from "@/lib/insforge";
 import { timeAgo } from "@/lib/format";
 
+export const metadata = { title: "Terminal" };
+
 type RunRow = { id: string; query: string; status: string; mode: string; created_at: string; duration: number | null };
 type Company = { id: string; name: string; domain: string | null };
 

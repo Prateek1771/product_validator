@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { ResearchView } from "@/components/research/ResearchView";
 import { serverClient } from "@/lib/insforge";
 
+export const metadata = { title: "Research" };
+
 export default async function ResearchPage(props: PageProps<"/research/[id]">) {
   const { id } = await props.params;
   const db = (await serverClient()).database;

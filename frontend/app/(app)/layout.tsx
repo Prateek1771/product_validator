@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CommandPalette } from "@/components/shell/CommandPalette";
 import { Rail } from "@/components/shell/Rail";
 import { Ticker, type TickerItem } from "@/components/shell/Ticker";
 import { TopBar } from "@/components/shell/TopBar";
 import { currentUser, serverClient } from "@/lib/insforge";
+
+// Signed-in workspace: keep every authenticated route out of search results.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await currentUser();
