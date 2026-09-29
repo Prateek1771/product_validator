@@ -23,38 +23,57 @@ export type Report = {
   deliverable?: Deliverable;
 };
 
-// Mirrors backend/app/playbooks.py
-export type CompetitorProfiles = {
-  landscape: string; takeaways: string[]; opportunities: string[];
-  companies: {
-    name: string; domain: string | null; tagline: string; positioning: string; target_customers: string[];
-    pricing_tiers: { name: string; price: string; unit: string; includes: string[] }[];
-    key_features: string[]; integrations: string[]; notable_customers: string[];
-    review_themes: { theme: string; sentiment: "positive" | "negative" | "mixed"; quote: string | null; source_url: string | null }[];
-    strengths: string[]; weaknesses: string[]; recent_changes: string[];
-  }[];
-  positioning_map: { x_axis: string; y_axis: string; points: { name: string; x: number; y: number }[] };
+// Mirrors backend/app/playbooks.py. Reports saved before the skill-template schemas lack most fields, so views read them defensively.
+type Sourced = { point: string; source_url: string | null };
+export type Row = { dimension: string; values: string[] };
+export type CompanyProfile = {
+  name: string; domain: string | null;
+  at_a_glance: { tagline: string; founded: string; headquarters: string; team_size: string; funding: string; starting_price: string; free_tier: string };
+  value_prop: { headline: string; subheadline: string }; target_audience: string; positioning_angle: string;
+  messaging_themes: Sourced[]; capabilities: { name: string; description: string }[]; differentiators: string[];
+  integrations: { count: string; key: string[] }; product_direction: string[];
+  pricing: { tiers: { name: string; price: string; inclusions: string[] }[]; billing: string; free_trial: string; notable: string };
+  social_proof: { named_customers: string[]; industries: string[]; case_study_themes: string[]; ratings: { site: string; rating: string; count: string }[] };
+  review_themes: { theme: string; sentiment: "positive" | "negative" | "mixed"; quote: string | null; source_url: string | null }[];
+  content_signals: { content_types: string[]; focus_areas: string[] };
+  strengths: Sourced[]; weaknesses: Sourced[]; implications: { opportunities: string[]; threats: string[] };
+  sources: { page: string; url: string }[];
 };
-export type PricingTeardown = {
-  companies: {
-    name: string; value_metric: string; free_tier: string;
-    tiers: { name: string; price: string; billing: string; limits: string; notes: string | null }[];
-    changes: { date: string | null; what: string; direction: "up" | "down" | "new" | "removed" }[];
-    page_rubric: { dimension: string; verdict: "pass" | "partial" | "gap"; note: string }[];
-  }[];
-  comparison: { dimension: string; values: string[] }[]; insights: string[]; recommendation: string;
+export type CompetitorProfiles = {
+  companies: CompanyProfile[]; landscape: string; comparison: Row[]; takeaways: string[]; opportunities: string[];
+  positioning_map: { x_axis: string; y_axis: string; points: { name: string; x: number; y: number }[]; interpretation: string[] };
+};
+export type Verdict = { dimension: string; verdict: "pass" | "partial" | "gap"; note: string };
+export type CompanyPricing = {
+  name: string; value_metric: string; pricing_model: string; free_tier: string; billing_options: string; annual_discount: string;
+  tiers: { name: string; price: string; billing: string; limits: string; inclusions: string[]; is_anchor: boolean; notes?: string | null }[];
+  enterprise: string; hidden_costs: string[];
+  changes: { date: string | null; what: string; direction: "up" | "down" | "new" | "removed"; source_url?: string | null }[];
+  rubric_human: Verdict[]; rubric_agent: Verdict[]; paste_test: string;
+  fixes: { fix: string; impact: "high" | "medium" | "low"; effort: "high" | "medium" | "low"; why: string }[]; the_one_thing: string;
+};
+export type PricingTeardown = { companies: CompanyPricing[]; comparison: Row[]; cost_scenarios: Row[]; insights: string[]; recommendation: string };
+export type BattleSide = {
+  name: string; ideal_customer: string; choose_if: string[]; pricing_summary: string;
+  support: { documentation: string; channels: string; sla: string; onboarding: string };
+  social_proof: { quote: string; who: string; source_url: string | null }[];
 };
 export type Battlecard = {
-  subject: string; competitor: string; tldr: string; subject_wins: string[]; competitor_wins: string[];
-  features: { feature: string; subject: string; competitor: string }[]; pricing_notes: string;
+  companies: BattleSide[]; subject: string; competitor: string; tldr: string;
+  category_comparisons: { category: string; subject: string; competitor: string; bottom_line: string }[];
+  features: { category?: string; feature: string; subject: string; competitor: string }[];
+  ratings: { dimension: string; subject: number; competitor: number; note: string }[];
+  pricing: { rows: { item: string; subject: string; competitor: string }[]; total_cost: string; value_comparison: string };
+  subject_wins: string[]; competitor_wins: string[];
+  migration: { transfers: string[]; reconfigure: string[]; effort: string } | string;
   objections: { objection: string; response: string }[]; landmines: string[];
-  pick_subject_if: string[]; pick_competitor_if: string[]; migration: string;
-  proof_points: { claim: string; source_url: string | null }[];
+  proof_points: ({ point: string; source_url: string | null } | { claim: string; source_url: string | null })[];
 };
-export type Deliverable =
-  | { playbook: "profile"; label: string; data: CompetitorProfiles }
-  | { playbook: "pricing"; label: string; data: PricingTeardown }
-  | { playbook: "battlecard"; label: string; data: Battlecard };
+type DeliverableBase = { label: string; files?: { name: string; markdown: string }[] };
+export type Deliverable = DeliverableBase & (
+  | { playbook: "profile"; data: CompetitorProfiles }
+  | { playbook: "pricing"; data: PricingTeardown }
+  | { playbook: "battlecard"; data: Battlecard });
 export type Task = { topic: string; query: string; include_domains: string[]; freshness: string | null };
 
 export type RunEvent = { t: number } & (

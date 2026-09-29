@@ -110,7 +110,13 @@ stateDiagram-v2
 | `decision_engine` | `decisions.decide` ×(changes + 1): Jev or the LLM decision agent | changes + their claims | per change `decision`, `is_real_change`, `confidence`, `impact_score`, `evidence_quality`, `change_type`, `affected`, `recommended_action`; `decisions.needs_more_research` |
 | `synthesizer` | OpenAI → `Report`, then the playbook schema | changes, evidence, sources | `report` (title, summary, highlights, key_changes, why_it_matters, actions, markdown), plus `report.deliverable` for a non-brief playbook |
 
-**Playbooks** (`app/playbooks.py`) change what a run produces without changing the graph. Each one adds a planner hint that says which pages to research, and a pydantic schema. The synthesizer makes one extra strong-model call that fills the schema from the evidence and a source digest (≤60k chars), stores it as `report.deliverable = {playbook, label, data}`, and appends its markdown to the export. The playbooks are `profile` (competitor profiles and a positioning map), `pricing` (a teardown with a two-axis pricing-page rubric) and `battlecard` (A vs B). `brief` is the default and adds nothing. The frontend renders the deliverable in `components/research/Deliverable.tsx` as a tab next to the change brief.
+**Playbooks** (`app/playbooks.py`) change what a run produces without changing the graph. Each schema mirrors the output template of a marketing skill in `.claude/skills`: `profile` follows competitor-profiling, `pricing` follows the pricing-page teardown, and `battlecard` follows the competitors templates.
+
+- **Deeper research.** A playbook also deepens the research. Compared with the brief it plans up to 8 tasks, keeps 6 sources per task, crawls 4 of them, reads 15k chars per page (220k total), and asks for ≥30 claims. That costs about 40 web credits per run, and the Tavily and Firecrawl fallbacks absorb overflow.
+- **Two-stage build.** `build()` makes one strong-model call per company, in parallel, each fed that company's claims and pages from `company_context()`: its own pages plus shared pages that name no other company. A summary call then runs over those results: the comparison matrix, positioning map, cost scenarios, or head-to-head.
+- **Output.** The result is `report.deliverable = {playbook, label, data, files}`. `files` holds skill-format markdown (one profile or teardown per company) that the UI offers as downloads next to `data.json`.
+
+`brief` is the default and adds nothing. The frontend renders the deliverable in `components/research/Deliverable.tsx` as a tab next to the change brief, and it tolerates reports saved in older shapes.
 
 Each node is wrapped by `@node(name)`, which emits `node_start` (with its status) and `node_end` (with elapsed time and a state update). Nodes can emit `log` events, and every event is forwarded to SSE.
 

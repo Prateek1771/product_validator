@@ -156,6 +156,7 @@ async def planner(state, emit):
 @node("researcher")
 async def researcher(state, emit):
     tasks = state["research_plan"] if not state.get("iteration") else state.get("research_gaps", [])
+    pb = playbooks.get(state.get("playbook"))
     seen = {s["url"] for s in state.get("sources", [])}
 
     async def run_task(task):
@@ -165,8 +166,8 @@ async def researcher(state, emit):
         except Exception as e:
             await emit({"type": "log", "node": "researcher", "query": task["query"], "level": "warn", "message": f"Search failed: {e}"})
             return []
-        fresh = [r for r in sorted(results, key=lambda r: {"high": 0, "medium": 1, "low": 2}[r["relevance"]]) if r["url"] not in seen][:5]
-        to_scrape = fresh[: settings.scrapes_per_task]
+        fresh = [r for r in sorted(results, key=lambda r: {"high": 0, "medium": 1, "low": 2}[r["relevance"]]) if r["url"] not in seen][:pb.fresh_per_task]
+        to_scrape = fresh[: pb.scrapes_per_task or settings.scrapes_per_task]
         contents = await asyncio.gather(*(tools.scrape(r["url"]) for r in to_scrape))
         for r, c in zip(to_scrape, contents):
             r["content"] = c
@@ -184,9 +185,10 @@ async def researcher(state, emit):
 
 @node("evidence_analyst")
 async def evidence_analyst(state, emit):
-    docs, budget = [], 90_000
+    pb = playbooks.get(state.get("playbook"))
+    docs, budget = [], pb.evidence_budget
     for i, s in enumerate(state["sources"]):
-        body = (s.get("content") or s.get("snippet") or "")[:8000]
+        body = (s.get("content") or s.get("snippet") or "")[:pb.page_chars]
         chunk = f"[{i}] {s['title']} — {s['url']} (type: {s['type']})\n{body}\n"
         if budget - len(chunk) < 0:
             break
@@ -195,7 +197,9 @@ async def evidence_analyst(state, emit):
     ev: EvidenceSet = await llm.structured(EvidenceSet, [
         ("system", "You are an evidence analyst. From the source documents extract atomic, verifiable claims relevant to the "
                    "request, cite the [n] source id, normalise numbers/dates, group claims into distinct changes, flag "
-                   "contradictions between sources, and list follow-up searches for gaps. Only use facts in the documents."),
+                   "contradictions between sources, and list follow-up searches for gaps. Only use facts in the documents. "
+                   f"Extract at least {pb.min_claims} claims when the sources support it: every price, tier, limit, feature, "
+                   "integration, customer, funding fact, review quote and date."),
         ("user", f"Request: {state['user_request']}\n\nSources:\n" + "\n".join(docs)),
     ], role="fast")
     srcs = state["sources"]
@@ -309,29 +313,12 @@ async def synthesizer(state, emit):
     r = report.model_dump()
     r["markdown"] = to_markdown(r, state["changes"])
     pb = playbooks.get(state.get("playbook"))
-    if pb.schema:
-        await emit({"type": "log", "node": "synthesizer", "message": f"Building {pb.label.lower()} deliverable"})
-        data = (await llm.structured(pb.schema, [
-            ("system", "You are a competitive-intelligence analyst. " + pb.prompt),
-            ("user", f"Request: {state['user_request']}\n\nCompanies: {state.get('entities', [])}\n\n"
-                     f"Evidence (claims with sources):\n{state['evidence']}\n\nDetected changes:\n{changes}\n\n"
-                     f"Sources:\n{_source_digest(state['sources'])}"),
-        ], role="strong")).model_dump()
-        r["deliverable"] = {"playbook": pb.id, "label": pb.label, "data": data}
+    if pb.company_schema:
+        await emit({"type": "log", "node": "synthesizer", "message": f"Building {pb.label.lower()}: one analyst per company, then a summary"})
+        data = await playbooks.build(pb, state, changes)
+        r["deliverable"] = {"playbook": pb.id, "label": pb.label, "data": data, "files": playbooks.files(pb, data)}
         r["markdown"] += "\n\n" + pb.to_markdown(data)
     return {"report": r}
-
-
-def _source_digest(sources: list[dict], budget: int = 60_000) -> str:
-    """Page bodies for deliverables that need detail beyond extracted claims (tiers, features, review quotes)."""
-    out = []
-    for s in sources:
-        chunk = f"- {s['title']} — {s['url']} ({s['type']})\n{(s.get('content') or s.get('snippet') or '')[:5000]}\n"
-        if budget - len(chunk) < 0:
-            break
-        budget -= len(chunk)
-        out.append(chunk)
-    return "\n".join(out)
 
 
 def to_markdown(r: dict, changes: list[dict]) -> str:

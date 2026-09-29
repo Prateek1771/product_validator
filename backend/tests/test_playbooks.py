@@ -1,57 +1,81 @@
-"""Playbooks: schemas render to markdown, the planner gets the hint, and the graph attaches the deliverable."""
+"""Playbooks: skill-template markdown, per-company build, and the graph attaching the deliverable."""
 import asyncio
+import types
+import typing
 
 import pytest
+from pydantic import BaseModel
 
 from app import graph as g
 from app import playbooks as pb
 from tests.test_graph import fake_jev, fake_scrape, fake_search, fake_structured
 
-SAMPLES = {
-    "profile": pb.CompetitorProfiles(
-        landscape="Two frontier labs.",
-        companies=[pb.CompanyProfile(
-            name="Anthropic", domain="anthropic.com", tagline="AI safety", positioning="enterprise-grade safety",
-            target_customers=["enterprises"], pricing_tiers=[pb.Tier(name="Opus", price="$4 / MTok", unit="per million tokens", includes=["1M context"])],
-            key_features=["tool use"], integrations=["AWS Bedrock"], notable_customers=["Acme"],
-            review_themes=[pb.ReviewTheme(theme="great at code", sentiment="positive", quote="best coder", source_url=None)],
-            strengths=["reasoning"], weaknesses=["rate limits"], recent_changes=["Opus 5.5 launch"])],
-        positioning_map=pb.PositioningMap(x_axis="price", y_axis="focus", points=[pb.MapPoint(name="Anthropic", x=70, y=80)]),
-        takeaways=["t"], opportunities=["o"]),
-    "pricing": pb.PricingTeardown(
-        companies=[pb.CompanyPricing(
-            name="OpenAI", value_metric="tokens", free_tier="none",
-            tiers=[pb.PriceTier(name="gpt-4.1", price="$2 / MTok", billing="usage-based", limits="tiered", notes=None)],
-            changes=[pb.PriceChange(date="2026-09", what="cut input price", direction="down")],
-            page_rubric=[pb.Verdict(dimension="Machine-readable pricing", verdict="pass", note="prices in HTML")])],
-        comparison=[pb.ComparisonRow(dimension="Input $/MTok", values=["$2"])], insights=["i"], recommendation="r"),
-    "battlecard": pb.Battlecard(
-        subject="Anthropic", competitor="OpenAI", tldr="Close race.", subject_wins=["safety"], competitor_wins=["ecosystem"],
-        features=[pb.FeatureRow(feature="Context", subject="1M", competitor="1M")], pricing_notes="similar",
-        objections=[pb.Objection(objection="Pricier?", response="Cheaper since the cut.")], landmines=["Ask about rate limits"],
-        pick_subject_if=["you need long context"], pick_competitor_if=["you need plugins"], migration="Swap SDK",
-        proof_points=[pb.Proof(claim="40% cut", source_url="https://anthropic.com/pricing")]),
+
+def sample(t, name="Acme"):
+    """Minimal valid instance of any schema type: lists get two items so tables and counts are exercised."""
+    origin, args = typing.get_origin(t), typing.get_args(t)
+    if origin is typing.Literal:
+        return args[0]
+    if origin in (typing.Union, types.UnionType):
+        return sample(next(a for a in args if a is not type(None)), name)
+    if origin is list:
+        return [sample(args[0], name) for _ in range(2)]
+    if isinstance(t, type) and issubclass(t, BaseModel):
+        return t(**{k: (name if k == "name" else sample(f.annotation, name)) for k, f in t.model_fields.items()})
+    return {str: "x", int: 3, bool: True, float: 0.5}[t]
+
+
+def deliverable(p, names=("Anthropic", "OpenAI")):
+    companies = [sample(p.company_schema, n).model_dump() for n in names]
+    summary = sample(p.summary_schema).model_dump()
+    if p.id == "battlecard":
+        summary.update(subject=names[0], competitor=names[1])
+    return {"companies": companies, **summary}
+
+
+HEADINGS = {
+    "profile": ["At a Glance", "Positioning & Messaging", "Product & Features", "Customers & Social Proof",
+                "Strengths & Weaknesses", "Competitive Implications", "Raw Data Sources", "Side-by-Side Comparison", "Positioning Map"],
+    "pricing": ["Tiers", "Scores", "Paste test", "Dimension-by-dimension", "Prioritized fixes", "The one thing", "Cost scenarios"],
+    "battlecard": ["TL;DR", "Feature Comparison", "Pricing", "Service & Support", "Who Should Choose", "Migration", "Objection handling"],
 }
 
 
 @pytest.mark.parametrize("pid", ["profile", "pricing", "battlecard"])
-def test_markdown_renders(pid):
-    md = pb.PLAYBOOKS[pid].to_markdown(SAMPLES[pid].model_dump())
-    assert md.startswith("## ") and len(md) > 100
+def test_markdown_follows_skill_template(pid):
+    p = pb.PLAYBOOKS[pid]
+    d = deliverable(p)
+    md = p.to_markdown(d)
+    for h in HEADINGS[pid]:
+        assert h in md, h
+    f = pb.files(p, d)
+    assert len(f) == (1 if pid == "battlecard" else 2) and all(x["markdown"] for x in f)
 
 
 def test_brief_has_no_deliverable_and_unknown_falls_back():
-    assert pb.get("brief").schema is None
+    assert pb.get("brief").company_schema is None
     assert pb.get("nope").id == "brief" and pb.get(None).id == "brief"
 
 
+def test_company_context_splits_sources():
+    ents = [{"name": "Anthropic", "domain": "anthropic.com"}, {"name": "OpenAI", "domain": "openai.com"}]
+    srcs = [{"url": "https://anthropic.com/pricing", "title": "Pricing"}, {"url": "https://openai.com/api", "title": "API"},
+            {"url": "https://news.example/ai", "title": "AI roundup"}]
+    got, claims = pb.company_context(ents[0], ents, srcs, [{"entity": "OpenAI", "claim": "c"}])
+    assert [s["url"] for s in got] == ["https://anthropic.com/pricing", "https://news.example/ai"]
+    assert claims == [{"entity": "OpenAI", "claim": "c"}]  # no own claims -> all
+
+
 def _run(monkeypatch, playbook):
-    seen_prompts = []
+    calls = []
+    p = pb.get(playbook)
 
     async def structured(schema, messages, role="fast"):
-        seen_prompts.append((schema, messages[0][1]))
-        if schema is pb.PricingTeardown:
-            return SAMPLES["pricing"]
+        calls.append((schema, messages[0][1], messages[-1][1]))
+        if schema is p.company_schema:
+            return sample(schema, "Acme")
+        if schema is p.summary_schema:
+            return sample(schema)
         return await fake_structured(schema, messages, role)
 
     monkeypatch.setattr(g.llm, "structured", structured)
@@ -61,19 +85,21 @@ def _run(monkeypatch, playbook):
     monkeypatch.setattr(g.tools, "jev", fake_jev)
     out = asyncio.run(g.graph.ainvoke({"user_request": "OpenAI pricing", "mode": "web", "playbook": playbook},
                                       config={"recursion_limit": 40}))
-    return out, seen_prompts
+    return out, calls
 
 
-def test_pricing_playbook_attaches_deliverable(monkeypatch):
-    out, prompts = _run(monkeypatch, "pricing")
-    planner_prompt = next(p for s, p in prompts if s is g.Plan)
-    assert "PLAYBOOK pricing teardown" in planner_prompt
+def test_pricing_playbook_builds_per_company_then_summary(monkeypatch):
+    out, calls = _run(monkeypatch, "pricing")
+    assert "PLAYBOOK pricing teardown" in next(sys for s, sys, _ in calls if s is g.Plan)
+    assert "at least 30 claims" in next(sys for s, sys, _ in calls if s is g.EvidenceSet)
+    per_company = [c for c in calls if c[0] is pb.CompanyPricing]
+    assert len(per_company) == len(out["entities"]) and [c for c in calls if c[0] is pb.PricingSummary]
     d = out["report"]["deliverable"]
-    assert d["playbook"] == "pricing" and d["data"]["companies"][0]["name"] == "OpenAI"
-    assert "## Pricing teardown" in out["report"]["markdown"]
+    assert d["playbook"] == "pricing" and len(d["data"]["companies"]) == len(out["entities"])
+    assert d["files"] and "# Pricing Teardown" in out["report"]["markdown"]
 
 
 def test_brief_playbook_unchanged(monkeypatch):
-    out, prompts = _run(monkeypatch, "brief")
+    out, calls = _run(monkeypatch, "brief")
     assert "deliverable" not in out["report"]
-    assert all(s is not pb.PricingTeardown for s, _ in prompts)
+    assert all(s not in (pb.CompanyPricing, pb.PricingSummary) for s, *_ in calls)
