@@ -60,6 +60,7 @@ Before calling a change done, run pytest, tsc, eslint and `next build`.
 - **Context.dev:** `num_results` must be ≥ 10. Each search or scrape costs 1 credit; the free tier has 250.
 - **Jev:** call `POST https://openrouter.ai/api/alpha/decisions` (chat completions rejects it). `questions` is a dict of `{type: noul|choice|score, instructions, criteria}`. A score answer is a level index, so use `score_pct()` for 0–100.
 - **LLM:** always go through `llm.structured()`; never construct chat models in nodes. The platform LLM is OpenAI direct, and OpenRouter is only used for Jev or when a user picks OpenRouter models. `LLM_BASE_URL` no longer exists.
+- **Output cap:** if a structured call hits the model's output limit (`LengthFinishReasonError`), `llm.structured()` retries it once with a "be concise" system message (`CONCISE`). Long pricing pages trigger this.
 - **BYOK tables** (`user_keys`, `user_llm`): RLS is on with **no policies** and all grants are revoked, so only the backend admin key can touch them. Never return `key_enc` or plaintext keys from an endpoint; the browser only ever sees `hint`. Rotating `SECRETS_KEY` makes stored user keys unreadable (they are treated as unset).
 - **Deploy:** the backend runs on Render from the root `render.yaml` Blueprint (Docker, `rootDir: backend`, `/health`). The frontend runs on Vercel from `frontend/`.
 - **One backend replica.** `RUNS` and the `usage` meters live in memory. Moving to Redis would be needed before scaling out.
@@ -81,6 +82,21 @@ Before calling a change done, run pytest, tsc, eslint and `next build`.
   Add its id to `ResearchIn.playbook` in `main.py` and to a migration that widens the `research_runs.playbook` check. On the frontend, add it to `lib/playbooks.ts`, its type to `lib/types.ts`, and a view in `components/research/Deliverable.tsx`, reading fields through `arr()` / `txt()` so older reports still render.
 - **Page:** create `app/(app)/<route>/page.tsx` using `PageTitle` + `Panel`, then add a `lib/nav.ts` entry, which also gives it a hotkey and a palette entry.
 - **Column or table:** create a new `migrations/00N_*.sql` and apply it with `scripts/sql.py`. Don't edit applied migrations.
+
+## Positioning and copy
+
+- **Positioning:** MKT·INTEL is an **AI market research agent for any industry**. It covers your own product's market, competitors and market trends, and it is not an AI-industry tracker. Copy, example prompts, SEO metadata (`lib/site.ts`, `app/layout.tsx`, `manifest.ts`, `opengraph-image.tsx`) and agent prompts (`graph.py` planner, `MODE_HINT`, `CHANGE_QUESTIONS`) stay industry-neutral. Use multi-industry examples (Shopify vs BigCommerce, Notion/Coda, HubSpot vs Salesforce, home fitness trends).
+- **Copy rules** (from `.agents/skills/copywriting`):
+  - Write in customer language, benefit first, with plain verbs.
+  - CTAs are action plus outcome ("Run your first report").
+  - No exclamation marks, no buzzwords, no false or fake-precise claims. Run-time claims must match measured runs (about 1 min for a brief, 2-3 min for a playbook).
+- **Design rules** (from `.agents/skills/design-taste-frontend` and `redesign-existing-projects`):
+  - No em or en dashes anywhere in the UI or in generated reports.
+  - No eyebrow labels above landing sections, and no decorative dots, grid lines or glows.
+  - One accent colour (amber). Violet is reserved for the `investigate` action.
+  - The hero H1 fits on 2 lines and the subtext is 20 words or fewer.
+  - Landing screenshots are real component renders, never div mock-ups. They live in `frontend/public/screens/`: give a changed shot a new filename, because the image optimiser caches by path.
+  - Scroll reveal (`.reveal`) goes on images only, never on text, because half-faded text fails Lighthouse contrast.
 
 ## Marketing skills
 
