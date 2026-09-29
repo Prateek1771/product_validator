@@ -31,8 +31,7 @@ export default async function TerminalHome() {
     <div className="min-h-full">
       <div className="mx-auto max-w-[1400px] space-y-3 p-3 md:p-4">
         <section className="panel relative overflow-hidden px-4 py-6 md:px-8 md:py-10">
-          <p className="label"><span className="text-amber">●</span> agentic market intelligence · openai · langgraph · context.dev · jev</p>
-          <h1 className="cursor mt-3 max-w-3xl text-2xl font-semibold tracking-tight md:text-4xl">What changed, why it matters, what to do.</h1>
+          <h1 className="cursor max-w-3xl text-2xl font-semibold tracking-tight md:text-4xl">What do you want to research?</h1>
           <div className="mt-6 max-w-3xl"><PromptHero /></div>
           <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-2 font-mono text-[11px] text-dim">
             <div><dt className="inline text-faint">SIGNALS </dt><dd className="inline text-fg">{rows.length}</dd></div>
@@ -61,7 +60,7 @@ export default async function TerminalHome() {
                     </li>
                   ))}
                 </ul>
-              ) : <Empty title="Nothing tracked">Companies are added as research mentions them.</Empty>}
+              ) : <Empty title="No companies yet">Companies are added as your research mentions them.</Empty>}
             </Panel>
             <Panel title="System"><SystemMini /></Panel>
           </div>
@@ -82,7 +81,7 @@ export default async function TerminalHome() {
                 </li>
               ))}
             </ul>
-          ) : <Empty title="No runs yet">Press Ctrl K or use the prompt above.</Empty>}
+          ) : <Empty title="No runs yet">Ask a question above, or press Ctrl K from anywhere.</Empty>}
         </Panel>
       </div>
     </div>

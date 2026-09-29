@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from . import decisions, llm, playbooks, tools
 from .config import settings
 
-Topic = Literal["pricing", "models", "docs", "changelog", "news", "blog", "competitors", "other"]
+Topic = Literal["pricing", "products", "models", "docs", "changelog", "news", "blog", "competitors", "market", "reviews", "other"]
 ChangeType = ["pricing", "product", "model", "docs", "policy", "partnership", "other"]
 
 
@@ -129,10 +129,10 @@ def node(name: str):
 
 # ---------- nodes ----------
 MODE_HINT = {
-    "deep": "Thorough research: official pricing, models, docs, changelog, blog, and credible news.",
+    "deep": "Thorough research: official pricing, product pages, docs, changelogs, blogs and credible news.",
     "web": "Quick web scan: 2-3 broad queries, prioritise recent news.",
     "company": "Company focus: everything that changed at the named company, official sources first.",
-    "market": "Market analysis: compare the named companies and their competitors on pricing, models, positioning.",
+    "market": "Market analysis: trends, demand signals, key players, pricing and positioning across the market, including industry reports and credible news.",
 }
 
 
@@ -140,9 +140,10 @@ MODE_HINT = {
 async def planner(state, emit):
     pb = playbooks.get(state.get("playbook"))
     plan: Plan = await llm.structured(Plan, [
-        ("system", "You plan market-intelligence research on tech/AI companies. Identify companies and their official domains, "
-                   "then break the request into focused web search tasks. Use include_domains with official domains for "
-                   "pricing/docs/changelog/blog tasks; leave it empty for news and competitor tasks. " + MODE_HINT[state.get("mode", "deep")]
+        ("system", "You plan market research on companies, products and markets in any industry. Identify the companies and their "
+                   "official domains, then break the request into focused web search tasks. Use include_domains with official domains "
+                   "for pricing/product/docs/changelog/blog tasks; leave it empty for news, competitor, review and market tasks. For "
+                   "trend or market questions, plan tasks for industry reports, market data, review sites and credible news. " + MODE_HINT[state.get("mode", "deep")]
                    + (" " + pb.planner_hint if pb.planner_hint else "")),
         ("user", state["user_request"]),
     ], role="fast")
@@ -229,8 +230,8 @@ CHANGE_QUESTIONS = {
                           "Unsupported, speculative, contradicted, or only from low-reliability reposts"),
     "change_type": tools.choice("What type of change is this?", {
         "pricing": "Prices, plans, rate limits, credits or billing changed",
-        "product": "New or changed product, feature, API capability or tool",
-        "model": "New, updated or deprecated AI model",
+        "product": "New or changed product, feature, service or product line",
+        "market": "Market trend, demand shift, regulation or competitive move",
         "docs": "Documentation, changelog or guidance update without product change",
         "policy": "Terms, usage policy, legal or safety policy change",
         "partnership": "Partnership, acquisition, funding or distribution deal",
@@ -240,9 +241,9 @@ CHANGE_QUESTIONS = {
     "evidence_quality": tools.score("How strong is the supporting evidence?",
                                     ["none", "weak", "mixed", "strong", "conclusive official"]),
     "affected": tools.choice("Who is most affected?", {
-        "developers": "API users and builders", "enterprises": "Enterprise buyers and IT",
-        "consumers": "End users of consumer apps", "investors": "Investors and analysts",
-        "competitors": "Rival vendors"}),
+        "customers": "End customers and users", "businesses": "Business buyers and partners",
+        "developers": "Developers and technical buyers", "investors": "Investors and analysts",
+        "competitors": "Rival companies"}),
 }
 
 

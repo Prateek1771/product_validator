@@ -39,7 +39,7 @@ export function SignalsTable({ rows, filters = false }: { rows: SignalRow[]; fil
         </div>
       )}
       {!list.length ? (
-        <Empty title="No signals yet">Verified changes from your research runs stream in here, ranked by impact.</Empty>
+        <Empty title="No signals yet">Run your first report and verified findings show up here, highest impact first.</Empty>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-[13px]">

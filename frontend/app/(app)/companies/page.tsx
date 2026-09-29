@@ -25,7 +25,7 @@ export default async function CompaniesPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] p-3 md:p-4">
-      <PageTitle title="Companies" sub="watchlist · auto-discovered by research" />
+      <PageTitle title="Companies" sub="Companies found in your research, with their biggest recent change" />
       <Panel title="Watchlist" count={rows.length}><Watchlist rows={rows} /></Panel>
     </div>
   );

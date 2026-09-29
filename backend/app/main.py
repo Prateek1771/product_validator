@@ -244,8 +244,8 @@ async def _settings_payload(user_id: str) -> dict:
     notice = None
     if engine == "llm" and cfg.has_llm_key:
         via = next(llm.NAMES[p] for p in keys.LLM_PROVIDERS if cfg.key(p))
-        notice = (f"No OpenRouter key: Jev isn't available on your plan, so decisions run as an LLM decision agent on your {via} key "
-                  "with the same checks (real change, type, impact, evidence quality). Add an OpenRouter key to use Jev and unlock every model.")
+        notice = (f"No OpenRouter key, so Jev is off. Decisions run on a built-in decision agent with your {via} key and give the "
+                  "same outputs (real change, type, impact, evidence quality). Add an OpenRouter key to use Jev and every model.")
     return {
         "keys": await keys.listing(user_id),
         "platform": {p: keys.platform_key(p) is not None for p in keys.PROVIDERS},

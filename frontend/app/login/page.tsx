@@ -6,7 +6,7 @@ import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to MKT·INTEL, the AI market intelligence agent that tracks pricing, model and product changes across the AI industry.",
+  description: "Sign in to MKT·INTEL, the AI market research agent for competitor profiles, pricing teardowns, battlecards and market trends.",
   alternates: { canonical: "/login" },
 };
 
@@ -17,10 +17,10 @@ export default async function LoginPage(props: PageProps<"/login">) {
       <section className="relative hidden flex-col overflow-hidden border-r border-line bg-panel p-10 lg:flex">
         <Link href="/"><Brand /></Link>
         <h1 className="mt-16 max-w-md text-4xl leading-[1.08] font-semibold tracking-tight">
-          Find what changed in the AI market. <span className="text-amber">Decide what to do.</span>
+          Know your market. <span className="text-amber">Decide what to do.</span>
         </h1>
         <div className="mt-auto -mr-32 -mb-16 translate-y-6 overflow-hidden rounded-md border border-line-2">
-          <Image src="/screens/research.png" alt="Research view with a live agent log and a pricing teardown" width={1440} height={900} priority sizes="60vw" quality={90} className="h-auto w-full" />
+          <Image src="/screens/pricing-teardown.png" alt="Research view with a live agent log and a pricing teardown" width={1440} height={900} priority sizes="60vw" quality={90} className="h-auto w-full" />
         </div>
       </section>
       <section className="flex items-center justify-center p-6">

@@ -11,7 +11,7 @@ export default async function HistoryPage() {
   const rows = (data ?? []) as HistoryRow[];
   return (
     <div className="mx-auto max-w-[1400px] p-3 md:p-4">
-      <PageTitle title="History" sub="every research run" />
+      <PageTitle title="History" sub="Every run, ready to replay" />
       <Panel title="Runs" count={rows.length}><HistoryTable rows={rows} /></Panel>
     </div>
   );

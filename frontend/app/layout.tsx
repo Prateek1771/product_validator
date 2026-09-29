@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
-    "AI market intelligence", "competitive intelligence", "competitor tracking", "AI pricing changes", "LLM model launches",
-    "market research agent", "AI industry news", "LangGraph agent", "OpenAI", "Anthropic", "Google Gemini",
+    "market research", "AI market research", "market research agent", "competitor analysis", "competitive intelligence",
+    "market trends", "pricing analysis", "competitor profiles", "sales battlecards",
   ],
   authors: [{ name: "Prateek Hitli", url: "https://github.com/Prateek1771" }],
   creator: "Prateek Hitli",

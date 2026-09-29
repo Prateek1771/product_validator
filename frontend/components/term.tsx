@@ -116,8 +116,8 @@ export function PageTitle({ title, sub, children }: { title: string; sub?: strin
   return (
     <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="label">{sub ?? "mkt·intel"}</p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+        {sub && <p className="mt-0.5 text-[13px] text-dim">{sub}</p>}
       </div>
       {children}
     </header>

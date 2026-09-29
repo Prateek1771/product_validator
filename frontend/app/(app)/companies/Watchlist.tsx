@@ -14,7 +14,7 @@ export type WatchRow = {
 
 export function Watchlist({ rows }: { rows: WatchRow[] }) {
   const [open, setOpen] = useState<string | null>(rows[0]?.id ?? null);
-  if (!rows.length) return <Empty title="No companies tracked yet">Companies are added automatically when research mentions them.</Empty>;
+  if (!rows.length) return <Empty title="No companies yet">Companies are added as your research mentions them.</Empty>;
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] text-[13px]">

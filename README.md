@@ -1,8 +1,8 @@
-# MKT·INTEL — Agentic Market Intelligence
+# MKT·INTEL: AI market research agent
 
-**Track the AI industry. Find what changed. Understand the impact. Decide what to do.**
+**Research your market, size up competitors and spot trends, in any industry. Every claim sourced.**
 
-Ask a question like *"What changed in Anthropic's API pricing and models recently?"* A team of agents plans the research, searches and crawls the live web, extracts evidence, has **Jev** make typed, confidence-scored decisions about every change, loops back when evidence is weak, and hands you a sourced executive brief. You watch it happen in a terminal-style interface.
+Ask a question like *"Pricing teardown of Shopify vs BigCommerce"* or *"What are the biggest trends in home fitness right now?"* A team of agents plans the research, searches and crawls the live web, extracts evidence, has **Jev** make typed, confidence-scored decisions about every change, loops back when evidence is weak, and hands you a sourced executive brief. You watch it happen in a terminal-style interface.
 
 ![Research view](docs/screens/research.png)
 

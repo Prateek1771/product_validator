@@ -10,34 +10,34 @@ import { REPO_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const STEPS = [
-  ["Plan", "planner", "Finds the companies and their official domains, then splits your question into focused search tasks."],
-  ["Research", "researcher", "Searches the live web and crawls the best pages. Context.dev first, then Tavily, then Firecrawl."],
-  ["Verify", "evidence analyst", "Extracts cited claims, groups them into changes, and flags contradictions and gaps."],
-  ["Decide", "decision engine", "Jev scores each change: real or not, what type, how big. Weak evidence sends the agent back out."],
-  ["Write", "synthesizer", "Writes the brief or playbook report. Unverified claims are labelled, never stated as fact."],
+  ["Plan", "planner", "Works out which companies, sources and official pages to check."],
+  ["Research", "researcher", "Searches the live web and reads the best pages in full."],
+  ["Verify", "evidence analyst", "Pulls out every claim with its source and flags where sources disagree."],
+  ["Decide", "decision engine", "Scores each finding: is it real, what kind, how big. Weak evidence means another round."],
+  ["Write", "synthesizer", "Writes your report. Anything unverified is labelled, never stated as fact."],
 ];
 
 const PLAYBOOK_COPY: Record<string, string> = {
-  brief: "What changed, ranked by impact, with Jev-verified evidence and recommended actions.",
-  profile: "One comparable profile per company: positioning, pricing, customers, strengths, weaknesses and a positioning map.",
-  pricing: "Tier-by-tier prices, hidden costs, cost scenarios, and a pricing-page score for human buyers and AI agents.",
-  battlecard: "Where each side wins, objection handling, landmine questions, migration notes and who should pick which.",
+  brief: "What changed in your market and what to do about it, ranked by impact.",
+  profile: "Side-by-side profiles of each competitor: positioning, pricing, customers, strengths and weaknesses, plus a positioning map.",
+  pricing: "Every tier and hidden cost, what a typical customer pays on each, and how clear each pricing page is.",
+  battlecard: "Where each side wins, answers to common objections, questions that expose weak spots, and who should pick which.",
 };
 
 const FEATURES: { group: string; items: [string, string][] }[] = [
-  { group: "Research you can check", items: [
-    ["Typed decisions", "Calibrated probabilities instead of vibes, turned into alert, investigate, monitor or ignore."],
-    ["Web data that keeps working", "Three search providers with automatic fallback, so a run finishes when one runs out of credits."],
-    ["Live agent log", "Every plan step, search, crawl, provider switch and decision streams in as it happens."],
+  { group: "Research you can trust", items: [
+    ["A next step for every finding", "Each finding gets a probability that it is real and an impact score, then a clear call: alert, investigate, monitor or ignore."],
+    ["Runs finish when a provider runs dry", "Three search providers with automatic fallback, so one running out of credits never stops a report."],
+    ["See how the report was built", "Watch every search, page and decision as it happens in the live agent log."],
   ] },
   { group: "Your keys, your models", items: [
-    ["Bring your own keys", "OpenAI, Anthropic, Gemini or OpenRouter. Pick a fast model for planning and a strong one for the report."],
-    ["Jev is optional", "Without an OpenRouter key, an LLM decision agent returns the same typed answers with your own key."],
+    ["Bring your own keys", "Use your own OpenAI, Anthropic, Gemini or OpenRouter key. Pick a fast model for the legwork and a strong one for the writing."],
+    ["Jev is optional", "No OpenRouter key? A built-in decision agent gives the same scores with the key you already have."],
   ] },
-  { group: "Built for the workflow", items: [
-    ["Signals, watchlist and history", "Verified changes across all runs, companies discovered automatically, every run replayable."],
-    ["Exports", "Markdown per company, JSON data, or print to PDF."],
-    ["Keyboard first", "Ctrl K for the command palette, number keys to navigate, j and k to move through lists."],
+  { group: "Fits your workflow", items: [
+    ["Signals and watchlist", "Verified findings from every run in one feed. Companies join your watchlist as they come up."],
+    ["Exports", "Download Markdown per company or the raw JSON, or print to PDF."],
+    ["Keyboard first", "Ctrl K to start anything, number keys to switch views, j and k to move through lists."],
   ] },
 ];
 
@@ -52,12 +52,15 @@ const STACK = [
 ];
 
 const FAQ = [
-  ["What is MKT·INTEL?", "An AI market intelligence agent. You ask what changed at an AI company, and a team of agents researches the live web, verifies each claim and writes a sourced brief with recommended actions."],
-  ["How is it different from a chatbot with web search?", "Every change is checked by a typed decision engine (Jev) that returns calibrated probabilities for whether it is real, its type, its impact and its evidence quality. Weak evidence triggers more research instead of a confident guess."],
-  ["Which sources does it use?", "Live web search and page crawls through Context.dev, Tavily and Firecrawl, prioritising official pricing pages, docs, changelogs and blogs, then credible news. Social media reposts are filtered out."],
-  ["Can I use my own API keys and models?", "Yes. Add your own OpenAI, Anthropic, Gemini or OpenRouter key and choose a fast model for planning and a strong model for the brief. Keys are encrypted at rest and never sent to the browser."],
-  ["Do I need a Jev subscription?", "No. With an OpenRouter key you get Jev. Without one, decisions run on an LLM decision agent using your own key, with the same checks and output format."],
-  ["Is it open source?", "The code is on GitHub, including the LangGraph agent, the FastAPI backend and this Next.js frontend."],
+  ["What is MKT·INTEL?", "An AI market research agent. Ask about your market, a competitor or a trend, and agents research the live web, verify each claim and write a sourced report with recommended actions."],
+  ["Which markets does it cover?", "Any market with a public web presence: software, consumer brands, retail, fintech, health and more. It works best where companies publish pricing, product pages and news."],
+  ["How is it different from a chatbot with web search?", "Every finding is checked by a typed decision engine (Jev) that scores whether it is real, what kind of change it is, how big the impact is and how strong the evidence is. Weak evidence triggers more research instead of a confident guess."],
+  ["Which sources does it use?", "Live web search and full-page reads through Context.dev, Tavily and Firecrawl. It starts with official pricing pages, product pages, docs and blogs, then review sites, industry reports and credible news. Social media reposts are filtered out."],
+  ["How long does a report take?", "About a minute for a quick brief, and two to three minutes for a full competitor profile, pricing teardown or battlecard."],
+  ["Is it free?", "Yes. Create an account and run reports on the platform keys, or add your own keys to choose the models."],
+  ["Can I use my own API keys and models?", "Yes. Add an OpenAI, Anthropic, Gemini or OpenRouter key and pick a fast model for planning and a strong model for the report. Keys are encrypted at rest and never sent to the browser."],
+  ["Do I need a Jev subscription?", "No. With an OpenRouter key you get Jev. Without one, decisions run on a built-in decision agent using your own key, with the same checks and output."],
+  ["Is it open source?", "Yes. The code is on GitHub, including the LangGraph agent, the FastAPI backend and this Next.js frontend."],
 ];
 
 function jsonLd() {
@@ -113,25 +116,25 @@ export default function Landing() {
           <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 pt-14 pb-16 md:pt-20 lg:grid-cols-[6fr_7fr] lg:pb-20">
             <div>
               <h1 className="text-4xl leading-[1.05] font-semibold tracking-tight md:text-5xl xl:text-[54px]">
-                AI market intelligence, <span className="text-amber">with receipts.</span>
+                Market research in minutes, <span className="text-amber">not weeks.</span>
               </h1>
               <p className="rise mt-5 max-w-[46ch] text-[17px] leading-relaxed text-dim" style={{ "--i": 1 } as React.CSSProperties}>
-                Ask what changed at any AI company. Agents search the live web, verify every claim, and write a sourced report.
+                Size up competitors, check pricing or spot trends in any market. Agents verify every claim and cite the source.
               </p>
               <div className="rise mt-8 flex flex-wrap items-center gap-5" style={{ "--i": 2 } as React.CSSProperties}>
-                <Link href="/login" className="btn-amber h-11 px-5 text-[12px]">Start researching <ArrowRight className="size-3.5" /></Link>
-                <a href="#how" className="font-mono text-[12px] tracking-wider text-dim uppercase underline-offset-4 transition hover:text-fg hover:underline">How it works</a>
+                <Link href="/login" className="btn-amber h-11 px-5 text-[12px]">Run your first report <ArrowRight className="size-3.5" /></Link>
+                <a href="#how" className="font-mono text-[12px] tracking-wider text-dim uppercase underline-offset-4 transition hover:text-fg hover:underline">See how it works</a>
               </div>
             </div>
-            <Shot src="/screens/research.png" priority sizes="(min-width: 1024px) 60vw, 100vw" className="lg:-mr-40"
-                  alt="Research view: live agent log, a pricing teardown of the OpenAI API vs the Anthropic API, and the sources inspector" />
+            <Shot src="/screens/pricing-teardown.png" priority sizes="(min-width: 1024px) 60vw, 100vw" className="lg:-mr-40"
+                  alt="Research view: live agent log, a pricing teardown of Shopify vs BigCommerce, and the sources inspector" />
           </div>
         </section>
 
         <section id="how" className="mx-auto max-w-[1400px] scroll-mt-16 px-4 py-20 md:py-24">
           <div>
-            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Five agents between your question and the report</h2>
-            <p className="mt-3 max-w-[65ch] text-[15px] leading-relaxed text-dim">A LangGraph workflow. When the evidence is weak, the decision engine loops back for more research before anything is written.</p>
+            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">How a question becomes a report you can trust</h2>
+            <p className="mt-3 max-w-[65ch] text-[15px] leading-relaxed text-dim">Five agents split the work. If the evidence is thin, they go back for more before a word is written.</p>
           </div>
           <ol className="mt-12 grid gap-8 md:grid-cols-5 md:gap-0">
             {STEPS.map(([verb, agent, body]) => (
@@ -149,7 +152,7 @@ export default function Landing() {
           <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 py-20 md:py-24 lg:grid-cols-[1fr_1.35fr]">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">One question, four kinds of report</h2>
-              <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-dim">Pick the output before you run. The playbook decides which pages the agents read and how the report is structured.</p>
+              <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-dim">Research your own product&apos;s market, a competitor, or a whole category. Pick the report before you run.</p>
               <dl className="mt-8 space-y-6">
                 {PLAYBOOKS.map((p) => (
                   <div key={p.id} className="grid grid-cols-[104px_1fr] gap-4">
@@ -162,17 +165,17 @@ export default function Landing() {
                 ))}
               </dl>
             </div>
-            <Shot src="/screens/battlecard.png" sizes="(min-width: 1024px) 55vw, 100vw" className="reveal"
-                  alt="Battlecard for Anthropic Claude vs OpenAI: TL;DR, where each side wins, and paragraph comparisons by category" />
+            <Shot src="/screens/battlecard-ratings.png" sizes="(min-width: 1024px) 55vw, 100vw" className="reveal"
+                  alt="Battlecard for HubSpot vs Salesforce: 1-5 ratings by category and a side-by-side pricing comparison" />
           </div>
         </section>
 
         <section className="mx-auto max-w-[1400px] px-4 py-20 md:py-24">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">A terminal for market intelligence</h2>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">The research, the report and every source on one screen</h2>
           <div className="mt-10 grid gap-6 lg:grid-cols-3 lg:grid-rows-2">
             <Shot src="/screens/light.png" sizes="(min-width: 1024px) 64vw, 100vw" className="reveal lg:col-span-2"
                   alt="Competitor profile of Mistral AI and Cohere in the light theme, with a positioning map and key takeaways"
-                  caption="Competitor profile with a positioning map, in the light theme." />
+                  caption="Competitor profiles come with a positioning map. Light theme included." />
             <figure className="reveal lg:row-span-2">
               <div className="mx-auto max-w-[320px] overflow-hidden rounded-[22px] border border-line-2 bg-panel lg:max-w-none">
                 <Image src="/screens/mobile.png" alt="The research view on a phone, with agent, brief and inspector tabs" width={390} height={844} sizes="(min-width: 1024px) 30vw, 320px" quality={90} className="h-auto w-full" />
@@ -181,16 +184,16 @@ export default function Landing() {
             </figure>
             <Shot src="/screens/palette.png" sizes="(min-width: 1024px) 64vw, 100vw" className="reveal lg:col-span-2"
                   alt="Command palette with research modes and playbooks, opened with Ctrl K"
-                  caption="Ctrl K starts any run: pick a mode, Shift Tab picks the report." />
+                  caption="Press Ctrl K to start a run from anywhere." />
           </div>
         </section>
 
         <section id="features" className="scroll-mt-16 border-y border-line bg-panel">
           <div className="mx-auto grid max-w-[1400px] gap-12 px-4 py-20 md:py-24 lg:grid-cols-[1fr_2fr]">
             <div className="lg:sticky lg:top-24 lg:self-start">
-              <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Built for competitive intelligence on the AI industry</h2>
+              <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Built so you can check every claim</h2>
               <div className="mt-8 rounded-md border border-line bg-bg p-4 font-mono text-[12px]" aria-label="Example typed decision for one detected change">
-                <p className="text-dim">Opus 5.5 price cut</p>
+                <p className="text-dim">Example: a competitor raises its entry price</p>
                 <dl className="mt-3 grid grid-cols-[1fr_auto] gap-y-2">
                   <dt className="text-faint">real change</dt><dd className="text-up">92%</dd>
                   <dt className="text-faint">type</dt><dd>pricing <span className="text-faint">72%</span></dd>
@@ -256,10 +259,10 @@ export default function Landing() {
           <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-16 md:flex-row md:items-center md:justify-between md:py-20">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Find out what changed. Decide what to do.</h2>
-              <p className="mt-2 text-[15px] text-dim">Create a free account and run your first research in under a minute.</p>
+              <p className="mt-2 text-[15px] text-dim">Create a free account and have your first report in minutes.</p>
             </div>
             <div className="flex shrink-0 gap-2">
-              <Link href="/login" className="btn-amber h-11 px-5 text-[12px]">Start researching <ArrowRight className="size-3.5" /></Link>
+              <Link href="/login" className="btn-amber h-11 px-5 text-[12px]">Run your first report <ArrowRight className="size-3.5" /></Link>
               <a href={REPO_URL} target="_blank" rel="noreferrer" className="btn h-11 px-5 text-[12px]">GitHub</a>
             </div>
           </div>
@@ -269,7 +272,7 @@ export default function Landing() {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-4 px-4 py-6 font-mono text-[11px] text-faint">
           <Brand />
-          <span>AI market intelligence agent</span>
+          <span>AI market research agent</span>
           <nav className="ml-auto flex gap-4" aria-label="Footer">
             <a href="#how" className="hover:text-fg">How it works</a>
             <a href="#faq" className="hover:text-fg">FAQ</a>

@@ -11,7 +11,8 @@ export function LoginForm({ oauthError }: { oauthError?: string }) {
   const verify = state.step === "verify";
 
   const title = verify ? "Check your email" : current === "signup" ? "Create your account" : "Welcome back";
-  const subtitle = verify ? `Enter the 6-digit code sent to ${state.email}` : "Sign in to your market intelligence workspace";
+  const subtitle = verify ? `Enter the 6-digit code we sent to ${state.email}`
+    : current === "signup" ? "Free to start. Your first report takes minutes." : "Sign in to see your reports and signals.";
 
   return (
     <div>
@@ -21,7 +22,7 @@ export function LoginForm({ oauthError }: { oauthError?: string }) {
 
       {(state.error || oauthError) && (
         <p role="alert" className="mt-5 rounded border border-down/40 bg-down-soft px-3 py-2 font-mono text-[12px] text-down">
-          {state.error ?? "Social sign-in failed. Please try again."}
+          {state.error ?? "Sign-in with that provider failed. Try again or use email."}
         </p>
       )}
       {state.info && !state.error && <p className="mt-5 rounded border border-amber/40 bg-amber-soft px-3 py-2 font-mono text-[12px] text-amber">{state.info}</p>}

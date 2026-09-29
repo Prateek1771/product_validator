@@ -11,7 +11,7 @@ export default async function SignalsPage() {
   const rows = (data ?? []) as SignalRow[];
   return (
     <div className="mx-auto max-w-[1400px] p-3 md:p-4">
-      <PageTitle title="Signals" sub="verified changes · ranked by jev impact" />
+      <PageTitle title="Signals" sub="Verified findings from all your runs, highest impact first" />
       <Panel title="All signals" count={rows.length}><SignalsTable rows={rows} filters /></Panel>
     </div>
   );

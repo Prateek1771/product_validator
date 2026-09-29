@@ -10,7 +10,7 @@ export default async function ReportsPage() {
   const rows = (data ?? []) as ReportRow[];
   return (
     <div className="mx-auto max-w-[1400px] p-3 md:p-4">
-      <PageTitle title="Reports" sub="executive briefs" />
+      <PageTitle title="Reports" sub="Every report. Bookmark the ones to keep." />
       <Panel title="Briefs" count={rows.length}><ReportsTable rows={rows} /></Panel>
     </div>
   );

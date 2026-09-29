@@ -11,10 +11,10 @@ import { PLAYBOOKS, type PlaybookId } from "@/lib/playbooks";
 import type { Mode } from "@/lib/types";
 
 export const MODES: { id: Mode; label: string; hint: string }[] = [
-  { id: "deep", label: "DEEP", hint: "multi-step research, Jev verification loops" },
-  { id: "web", label: "WEB", hint: "fast single pass over recent coverage" },
-  { id: "company", label: "COMPANY", hint: "everything that changed at one company" },
-  { id: "market", label: "MARKET", hint: "compare companies and competitors" },
+  { id: "deep", label: "DEEP", hint: "most thorough: follows up until the evidence holds" },
+  { id: "web", label: "WEB", hint: "fastest: one pass over recent news" },
+  { id: "company", label: "COMPANY", hint: "everything about one company" },
+  { id: "market", label: "MARKET", hint: "trends and key players across a market" },
 ];
 
 type Item = { id: string; group: string; label: string; hint?: string; icon: React.ReactNode; href?: string };
@@ -91,7 +91,7 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
       <div className="flex items-center gap-2 border-b border-line px-3">
         <span className="font-mono text-amber">&gt;</span>
         <input value={q} onChange={(e) => { setQ(e.target.value); setSel(0); }} onKeyDown={onKey} autoFocus
-               placeholder="What changed at Anthropic this month?" aria-label="Command or research question"
+               placeholder="How is Oatly positioned against its competitors?" aria-label="Command or research question"
                className="h-12 min-w-0 flex-1 bg-transparent font-mono text-[14px] outline-none placeholder:text-faint" />
         {busy && <Loader2 className="size-4 animate-spin text-amber" />}
       </div>

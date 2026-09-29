@@ -71,3 +71,21 @@ def test_jev_error_falls_back_to_llm_agent(monkeypatch):
     monkeypatch.setattr(decisions, "llm_decide", agent)
     answers, used = asyncio.run(decisions.decide({}, {"real": tools.noul("r", "y", "n")}))
     assert used == "llm" and answers["real"]["noul"] == 0.3
+
+
+def test_structured_retries_once_when_output_is_cut_off(monkeypatch):
+    from app import llm
+    calls = []
+
+    class LengthFinishReasonError(Exception):
+        pass
+
+    async def invoke(r, schema, messages):
+        calls.append(messages[0][1])
+        if len(calls) == 1:
+            raise LengthFinishReasonError("Could not parse response content as the length limit was reached")
+        return "ok"
+
+    monkeypatch.setattr(llm, "_invoke", invoke)
+    assert asyncio.run(llm.structured(object, [("system", "s"), ("user", "u")])) == "ok"
+    assert len(calls) == 2 and calls[1] == llm.CONCISE

@@ -1,6 +1,6 @@
-    # MKT·INTEL — agentic market intelligence
+    # MKT·INTEL: AI market research agent
 
-Users ask what changed at an AI company. A LangGraph agent plans the research, searches and crawls the web (Context.dev, falling back to Tavily and then Firecrawl), extracts claims (OpenAI), scores each detected change with **Jev** typed decisions (via OpenRouter), loops back when Jev says more evidence is needed, and writes a sourced brief. Progress streams live to a terminal-style Next.js UI. Auth and data live in InsForge.
+Users research a market, a competitor or a trend in any industry (positioning: general market research, not AI-only). A LangGraph agent plans the research, searches and crawls the web (Context.dev, falling back to Tavily and then Firecrawl), extracts claims (OpenAI), scores each detected change with **Jev** typed decisions (via OpenRouter), loops back when Jev says more evidence is needed, and writes a sourced brief. Progress streams live to a terminal-style Next.js UI. Auth and data live in InsForge.
 
 ```
 backend/    FastAPI + LangGraph + LangChain (Python 3.12, uv)   -> Render (Docker, render.yaml)

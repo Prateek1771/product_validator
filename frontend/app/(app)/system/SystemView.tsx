@@ -38,7 +38,7 @@ export function SystemView() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-3 p-3 md:p-4">
-      <PageTitle title="System" sub="provider health · credits · routing · refreshes every 15s">
+      <PageTitle title="System" sub="Provider health, credits and routing. Updates every 15 seconds.">
         <button onClick={() => { setLoading(true); load(); }} className="btn" disabled={loading}>
           <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} /> refresh
         </button>

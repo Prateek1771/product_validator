@@ -10,8 +10,8 @@ import type { Mode } from "@/lib/types";
 
 const EXAMPLES: { q: string; playbook: PlaybookId }[] = [
   ...PLAYBOOKS.map((p) => ({ q: p.example, playbook: p.id })),
-  { q: "OpenAI vs Anthropic vs Google: what launched this month?", playbook: "brief" },
-  { q: "Did Google change Gemini API rate limits or free tier?", playbook: "brief" },
+  { q: "What are the biggest trends in home fitness right now?", playbook: "brief" },
+  { q: "How is Oatly positioned against its competitors?", playbook: "brief" },
 ];
 
 export function PromptHero({ initial = "", compact = false }: { initial?: string; compact?: boolean }) {
@@ -41,7 +41,7 @@ export function PromptHero({ initial = "", compact = false }: { initial?: string
       <div className="panel flex items-center gap-2 px-3 transition focus-within:border-amber focus-within:ring-2 focus-within:ring-amber-soft">
         <span className="font-mono text-amber" aria-hidden>&gt;</span>
         <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Research question"
-               placeholder="ask what changed in the AI market…"
+               placeholder="ask about a market, a competitor or a trend…"
                className={`min-w-0 flex-1 bg-transparent font-mono outline-none placeholder:text-faint ${compact ? "h-10 text-[13px]" : "h-14 text-[15px]"}`} />
         <button type="submit" disabled={busy || q.trim().length < 3} className="btn-amber">
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <CornerDownLeft className="size-3.5" />} Run

@@ -34,7 +34,7 @@ export function TopBar({ email }: { email: string }) {
       <button onClick={() => openPalette()}
               className="ml-2 flex h-8 min-w-0 flex-1 items-center gap-2 rounded border border-line bg-panel px-3 text-left font-mono text-[12px] text-faint transition hover:border-line-2 md:max-w-xl">
         <Search className="size-3.5 shrink-0" />
-        <span className="truncate"><span className="text-amber">&gt;</span> ask what changed, or jump to…</span>
+        <span className="truncate"><span className="text-amber">&gt;</span> research a market, or jump to…</span>
         <span className="ml-auto hidden gap-1 sm:flex"><Kbd>Ctrl</Kbd><Kbd>K</Kbd></span>
       </button>
 

@@ -71,11 +71,26 @@ async def _invoke(r: Route, schema, messages):
     return out["parsed"]
 
 
+CONCISE = ("Your previous answer was cut off at the output limit. Be concise: at most 8 items per list, one sentence per "
+           "field, no repetition.")
+
+
+def _is_length_limit(e: Exception) -> bool:
+    return type(e).__name__ == "LengthFinishReasonError" or "length limit" in str(e).lower()
+
+
 async def structured(schema, messages, role: str = "fast"):
     """Structured call on the resolved route. A user key that fails auth/quota falls back to the platform once."""
     r = resolve(role)
     try:
-        return await _invoke(r, schema, messages)
+        try:
+            return await _invoke(r, schema, messages)
+        except Exception as e:
+            if not _is_length_limit(e):
+                raise
+            # Big sources (long pricing pages) can make the model run past its output cap: retry once, tighter.
+            log.warning("structured output hit the length limit on %s, retrying concisely", r.label())
+            return await _invoke(r, schema, [("system", CONCISE), *messages])
     except Exception as e:
         usage.fail(f"llm.{r.provider}", "call", e)
         fallback = platform_route(role)

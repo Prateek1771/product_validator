@@ -3,7 +3,7 @@ import { SITE_DESCRIPTION } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MKT·INTEL: AI Market Intelligence Agent",
+    name: "MKT·INTEL: AI Market Research Agent",
     short_name: "MKT·INTEL",
     description: SITE_DESCRIPTION,
     start_url: "/",
