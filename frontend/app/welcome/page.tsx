@@ -112,7 +112,7 @@ export default function Landing() {
         <section className="overflow-hidden border-b border-line">
           <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 pt-14 pb-16 md:pt-20 lg:grid-cols-[6fr_7fr] lg:pb-20">
             <div>
-              <h1 className="rise text-4xl leading-[1.05] font-semibold tracking-tight md:text-5xl xl:text-[54px]">
+              <h1 className="text-4xl leading-[1.05] font-semibold tracking-tight md:text-5xl xl:text-[54px]">
                 AI market intelligence, <span className="text-amber">with receipts.</span>
               </h1>
               <p className="rise mt-5 max-w-[46ch] text-[17px] leading-relaxed text-dim" style={{ "--i": 1 } as React.CSSProperties}>
@@ -129,11 +129,11 @@ export default function Landing() {
         </section>
 
         <section id="how" className="mx-auto max-w-[1400px] scroll-mt-16 px-4 py-20 md:py-24">
-          <div className="reveal">
+          <div>
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Five agents between your question and the report</h2>
             <p className="mt-3 max-w-[65ch] text-[15px] leading-relaxed text-dim">A LangGraph workflow. When the evidence is weak, the decision engine loops back for more research before anything is written.</p>
           </div>
-          <ol className="reveal mt-12 grid gap-8 md:grid-cols-5 md:gap-0">
+          <ol className="mt-12 grid gap-8 md:grid-cols-5 md:gap-0">
             {STEPS.map(([verb, agent, body]) => (
               <li key={verb} className="relative border-l border-line-2 pl-5 md:border-t md:border-l-0 md:pt-6 md:pr-6 md:pl-0">
                 <span className="absolute top-1.5 -left-[4px] size-[7px] bg-line-2 md:-top-[4px] md:left-0" aria-hidden />
@@ -147,7 +147,7 @@ export default function Landing() {
 
         <section className="border-y border-line bg-panel">
           <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 py-20 md:py-24 lg:grid-cols-[1fr_1.35fr]">
-            <div className="reveal">
+            <div>
               <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">One question, four kinds of report</h2>
               <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-dim">Pick the output before you run. The playbook decides which pages the agents read and how the report is structured.</p>
               <dl className="mt-8 space-y-6">
@@ -168,7 +168,7 @@ export default function Landing() {
         </section>
 
         <section className="mx-auto max-w-[1400px] px-4 py-20 md:py-24">
-          <h2 className="reveal text-3xl font-semibold tracking-tight md:text-4xl">A terminal for market intelligence</h2>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">A terminal for market intelligence</h2>
           <div className="mt-10 grid gap-6 lg:grid-cols-3 lg:grid-rows-2">
             <Shot src="/screens/light.png" sizes="(min-width: 1024px) 64vw, 100vw" className="reveal lg:col-span-2"
                   alt="Competitor profile of Mistral AI and Cohere in the light theme, with a positioning map and key takeaways"
@@ -201,7 +201,7 @@ export default function Landing() {
             </div>
             <div className="space-y-12">
               {FEATURES.map((g) => (
-                <div key={g.group} className="reveal">
+                <div key={g.group}>
                   <h3 className="border-b border-line pb-3 text-[15px] font-semibold text-amber">{g.group}</h3>
                   <dl className="mt-5 grid gap-x-10 gap-y-6 sm:grid-cols-2">
                     {g.items.map(([t, b]) => (
@@ -215,8 +215,8 @@ export default function Landing() {
         </section>
 
         <section id="architecture" className="mx-auto max-w-[1400px] scroll-mt-16 px-4 py-20 md:py-24">
-          <h2 className="reveal text-3xl font-semibold tracking-tight md:text-4xl">How the system fits together</h2>
-          <div className="reveal mt-10 grid items-stretch gap-2 font-mono text-[12px] lg:grid-cols-[1fr_auto_1fr_auto_1.3fr]" role="img"
+          <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">How the system fits together</h2>
+          <div className="mt-10 grid items-stretch gap-2 font-mono text-[12px] lg:grid-cols-[1fr_auto_1fr_auto_1.3fr]" role="img"
                aria-label="Architecture: the browser talks to a Next.js app on Vercel and to a FastAPI and LangGraph backend on Render, which calls the LLM gateway, Jev, the web data providers and InsForge">
             <ArchBox title="Browser" lines={["Next.js 16 UI", "SSR pages on Vercel", "live SSE stream"]} />
             <Arrow />
@@ -230,7 +230,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <dl className="reveal mt-14 grid gap-x-12 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+          <dl className="mt-14 grid gap-x-12 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
             {STACK.map(([k, v]) => (
               <div key={k}><dt className="label">{k}</dt><dd className="mt-1.5 text-[14px]">{v}</dd></div>
             ))}
@@ -243,8 +243,8 @@ export default function Landing() {
 
         <section id="faq" className="scroll-mt-16 border-t border-line bg-panel">
           <div className="mx-auto max-w-[1400px] px-4 py-20 md:py-24">
-            <h2 className="reveal text-3xl font-semibold tracking-tight md:text-4xl">Frequently asked questions</h2>
-            <dl className="reveal mt-10 grid gap-x-16 gap-y-10 md:grid-cols-2">
+            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Frequently asked questions</h2>
+            <dl className="mt-10 grid gap-x-16 gap-y-10 md:grid-cols-2">
               {FAQ.map(([q, a]) => (
                 <div key={q}><dt className="text-[16px] font-semibold">{q}</dt><dd className="mt-2 max-w-[60ch] text-[14.5px] leading-relaxed text-dim">{a}</dd></div>
               ))}
@@ -253,7 +253,7 @@ export default function Landing() {
         </section>
 
         <section className="border-t border-line">
-          <div className="reveal mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-16 md:flex-row md:items-center md:justify-between md:py-20">
+          <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-16 md:flex-row md:items-center md:justify-between md:py-20">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Find out what changed. Decide what to do.</h2>
               <p className="mt-2 text-[15px] text-dim">Create a free account and run your first research in under a minute.</p>
