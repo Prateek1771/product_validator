@@ -85,7 +85,7 @@ Before calling a change done, run pytest, tsc, eslint and `next build`.
 
 ## Positioning and copy
 
-- **Positioning:** MKT·INTEL is an **AI market research agent for any industry**. It covers your own product's market, competitors and market trends, and it is not an AI-industry tracker. Copy, example prompts, SEO metadata (`lib/site.ts`, `app/layout.tsx`, `manifest.ts`, `opengraph-image.tsx`) and agent prompts (`graph.py` planner, `MODE_HINT`, `CHANGE_QUESTIONS`) stay industry-neutral. Use multi-industry examples (Shopify vs BigCommerce, Notion/Coda, HubSpot vs Salesforce, home fitness trends).
+- **Positioning:** MKT·INTEL is an **AI market research agent for any industry**. It covers your own product's market, competitors and market trends, and it is not an AI-industry tracker. Copy, example prompts, SEO metadata (`lib/site.ts`, `app/layout.tsx`, `manifest.ts`, `opengraph-image.tsx`, `public/llms.txt`) and agent prompts (`graph.py` planner, `MODE_HINT`, `CHANGE_QUESTIONS`) stay industry-neutral. Use multi-industry examples (Shopify vs BigCommerce, Notion/Coda, HubSpot vs Salesforce, home fitness trends).
 - **Copy rules** (from `.agents/skills/copywriting`):
   - Write in customer language, benefit first, with plain verbs.
   - CTAs are action plus outcome ("Run your first report").

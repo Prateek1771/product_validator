@@ -1,0 +1,35 @@
+# MKT·INTEL
+
+> MKT·INTEL is an AI market research agent for any industry. Ask about your own product's market, a competitor or a market trend, and a team of agents searches the live web, reads the best pages in full, verifies every claim with typed decisions and writes a sourced report in minutes.
+
+MKT·INTEL is free to use at https://mkt-intel.vercel.app. A quick brief takes about a minute, and a full playbook report takes two to three minutes. It works for any market with a public web presence: software, consumer brands, retail, fintech, health and more.
+
+## Reports
+
+- Brief: what changed in a market and what to do about it, ranked by impact, with a confidence and impact score for each finding.
+- Competitor profile: side-by-side profiles of each competitor (positioning, pricing, customers, strengths and weaknesses) plus a positioning map.
+- Pricing teardown: every tier and hidden cost, what a typical customer pays on each, and how clear each pricing page is for human buyers and AI agents.
+- Battlecard: where each side wins, answers to common objections, questions that expose weak spots, and who should pick which.
+
+## How it works
+
+- Plan: works out which companies, sources and official pages to check.
+- Research: searches the live web (Context.dev, with Tavily and Firecrawl as fallbacks) and reads the best pages in full.
+- Verify: extracts every claim with its source and flags where sources disagree.
+- Decide: Jev typed decisions (or a built-in decision agent) score whether each finding is real, what kind it is and how big the impact is. Weak evidence triggers another round of research.
+- Write: produces the report. Unverified claims are labelled, never stated as fact.
+
+## Example questions
+
+- What are the biggest trends in home fitness right now?
+- Pricing teardown of Shopify vs BigCommerce
+- Competitor profile of Notion, Coda and Confluence
+- HubSpot vs Salesforce for a 50-person sales team
+- How is Oatly positioned against its competitors?
+
+## Links
+
+- [Home](https://mkt-intel.vercel.app/): product overview, how it works and FAQ
+- [Sign in](https://mkt-intel.vercel.app/login): create a free account or sign in
+- [Source code](https://github.com/Prateek1771/product_validator): the LangGraph agent, FastAPI backend and Next.js frontend
+- [Architecture guide](https://github.com/Prateek1771/product_validator/blob/main/docs/ARCHITECTURE.md): system design, data model and decision rules
