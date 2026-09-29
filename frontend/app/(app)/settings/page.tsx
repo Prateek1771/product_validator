@@ -27,8 +27,8 @@ export default async function SettingsPage() {
         <Panel title="Account" bodyClassName="p-3">
           <dl className="grid grid-cols-[110px_1fr] gap-y-2 font-mono text-[12px]">
             <dt className="text-faint">EMAIL</dt><dd className="truncate">{user?.email}</dd>
-            <dt className="text-faint">NAME</dt><dd>{(user?.profile as { name?: string } | null)?.name ?? "—"}</dd>
-            <dt className="text-faint">SINCE</dt><dd>{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}</dd>
+            <dt className="text-faint">NAME</dt><dd>{(user?.profile as { name?: string } | null)?.name ?? "-"}</dd>
+            <dt className="text-faint">SINCE</dt><dd>{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}</dd>
           </dl>
           <form action={signOut} className="mt-4"><button className="btn"><LogOut className="size-3.5" /> Sign out</button></form>
         </Panel>

@@ -24,7 +24,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <Ticker items={(wire ?? []) as TickerItem[]} />
       <div className="flex">
         <Rail />
-        <main className="min-w-0 flex-1 pb-16 md:pb-0">{children}</main>
+        <main id="main" className="min-w-0 flex-1 pb-16 md:pb-0">{children}</main>
       </div>
       <CommandPalette recent={(recent ?? []) as { id: string; query: string }[]} />
     </div>

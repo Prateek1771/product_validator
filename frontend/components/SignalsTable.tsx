@@ -66,11 +66,11 @@ export function SignalsTable({ rows, filters = false }: { rows: SignalRow[]; fil
               {list.map((r) => (
                 <tr key={r.id} onClick={() => router.push(`/research/${r.run_id}`)} className="cursor-pointer border-b border-line/60 transition last:border-0 hover:bg-hover">
                   <td className="py-2 pl-3"><Delta score={r.impact_score} /></td>
-                  <td className="py-2 pr-3 font-mono text-[12px] font-semibold whitespace-nowrap uppercase">{r.company ?? "—"}</td>
-                  <td className="py-2 pr-3 font-mono text-[11px] text-dim uppercase">{r.change_type ?? "—"}</td>
+                  <td className="py-2 pr-3 font-mono text-[12px] font-semibold whitespace-nowrap uppercase">{r.company ?? "-"}</td>
+                  <td className="py-2 pr-3 font-mono text-[11px] text-dim uppercase">{r.change_type ?? "-"}</td>
                   <td className="max-w-md py-2 pr-3"><a href={`/research/${r.run_id}`} className="line-clamp-1" onClick={(e) => e.stopPropagation()}>{r.title}</a></td>
                   <td className="py-2 pr-3 whitespace-nowrap">
-                    <span className="flex items-center gap-2"><Blocks value={r.impact_score ?? 0} label="impact" /><span className="font-mono text-[11px] text-dim">{r.impact_score ?? "—"}</span></span>
+                    <span className="flex items-center gap-2"><Blocks value={r.impact_score ?? 0} label="impact" /><span className="font-mono text-[11px] text-dim">{r.impact_score ?? "-"}</span></span>
                   </td>
                   <td className="py-2 pr-3"><ActionTag action={r.recommended_action} /></td>
                   <td className="py-2 pr-3 text-right font-mono text-[11px] whitespace-nowrap text-faint">{timeAgo(r.created_at)}</td>

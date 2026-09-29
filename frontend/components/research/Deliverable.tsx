@@ -83,7 +83,7 @@ function Table({ head, rows, minW = 480 }: { head: React.ReactNode[]; rows: Reac
 }
 
 const Matrix = ({ names, rows, first = "dimension" }: { names: string[]; rows: Row[]; first?: string }) =>
-  <Table head={[first, ...names]} rows={arr(rows).map((r) => [r.dimension, ...names.map((_, i) => arr(r.values)[i] ?? "—")])} minW={200 + 180 * names.length} />;
+  <Table head={[first, ...names]} rows={arr(rows).map((r) => [r.dimension, ...names.map((_, i) => arr(r.values)[i] ?? "-")])} minW={200 + 180 * names.length} />;
 
 const Box = ({ title, tone = "", children, className = "" }: { title: React.ReactNode; tone?: string; children: React.ReactNode; className?: string }) =>
   <div className={`rounded border border-line p-4 ${className}`}><Label className={tone}>{title}</Label>{children}</div>;
@@ -156,7 +156,7 @@ function ProfileCompany({ c }: { c: CompanyProfile & OldProfile }) {
   const tiers = p ? arr(p.tiers) : arr(c.pricing_tiers).map((t) => ({ name: t.name, price: t.price, inclusions: t.includes }));
   return (
     <CompanyCard title={c.name} meta={<>{c.domain && <span className="font-mono text-[11px] text-faint">{c.domain}</span>}
-      {txt(c.positioning_angle || c.positioning) && <Tag tone="violet" className="max-w-full truncate">{c.positioning_angle || c.positioning}</Tag>}</>}>
+      {txt(c.positioning_angle || c.positioning) && <Tag className="max-w-full truncate">{c.positioning_angle || c.positioning}</Tag>}</>}>
       {g ? (
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line sm:grid-cols-3 lg:grid-cols-4">
           {GLANCE.map(([k, l]) => (
@@ -195,9 +195,9 @@ function ProfileCompany({ c }: { c: CompanyProfile & OldProfile }) {
       <Grid2>
         <div>
           <Label>core capabilities</Label>
-          <Bullets items={c.capabilities ? arr(c.capabilities).map((x) => <><span className="font-medium">{x.name}</span> <span className="text-dim">— {x.description}</span></>) : arr(c.key_features)} />
+          <Bullets items={c.capabilities ? arr(c.capabilities).map((x) => <><span className="font-medium">{x.name}:</span> <span className="text-dim">{x.description}</span></>) : arr(c.key_features)} />
           <Label className="mt-4">differentiators</Label>
-          <Bullets items={arr(c.differentiators)} mark="◆" tone="text-violet" />
+          <Bullets items={arr(c.differentiators)} mark="◆" tone="text-amber" />
         </div>
         <div>
           <Label>integrations {txt(c.integrations?.count) && <span className="text-faint">· {c.integrations.count}</span>}</Label>
@@ -307,7 +307,7 @@ function Rubric({ title, items }: { title: string; items: Verdict[] }) {
 function PricingCompany({ c }: { c: CompanyPricing & { page_rubric?: Verdict[] } }) {
   return (
     <CompanyCard title={c.name} meta={<>
-      {txt(c.pricing_model) && <Tag tone="violet">{c.pricing_model}</Tag>}
+      {txt(c.pricing_model) && <Tag>{c.pricing_model}</Tag>}
       <span className="font-mono text-[11px] text-dim">VALUE METRIC <span className="text-fg">{c.value_metric}</span></span>
       <span className="font-mono text-[11px] text-dim">FREE <span className="text-fg">{c.free_tier}</span></span></>}>
       {(txt(c.billing_options) || txt(c.annual_discount)) && (
@@ -430,7 +430,7 @@ function BattlecardView({ d }: { d: Battlecard & OldBattle }) {
         <>
           <section><Label>service & support</Label>
             <Table head={["", d.subject, d.competitor]}
-                   rows={(["documentation", "channels", "sla", "onboarding"] as const).map((k) => [k === "sla" ? "SLA" : k[0].toUpperCase() + k.slice(1), S.support?.[k] ?? "—", C.support?.[k] ?? "—"])} /></section>
+                   rows={(["documentation", "channels", "sla", "onboarding"] as const).map((k) => [k === "sla" ? "SLA" : k[0].toUpperCase() + k.slice(1), S.support?.[k] ?? "-", C.support?.[k] ?? "-"])} /></section>
           <div className="grid gap-3 md:grid-cols-2">
             {[S, C].map((x, i) => (
               <Box key={x.name} title={`who should choose ${x.name}`} tone={i ? "text-info" : "text-up"}>

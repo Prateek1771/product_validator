@@ -189,7 +189,7 @@ async def evidence_analyst(state, emit):
     docs, budget = [], pb.evidence_budget
     for i, s in enumerate(state["sources"]):
         body = (s.get("content") or s.get("snippet") or "")[:pb.page_chars]
-        chunk = f"[{i}] {s['title']} — {s['url']} (type: {s['type']})\n{body}\n"
+        chunk = f"[{i}] {s['title']} - {s['url']} (type: {s['type']})\n{body}\n"
         if budget - len(chunk) < 0:
             break
         budget -= len(chunk)
@@ -307,7 +307,7 @@ async def synthesizer(state, emit):
         ("system", "You are a market-intelligence analyst writing a crisp executive briefing. Use only the verified changes "
                    "and evidence given. Lead with what changed, quantify it, explain why it matters, recommend actions. "
                    "Changes where is_real_change is false are unverified: mention them only as 'Unverified:' with the "
-                   "caveat, never as fact. Quote sources verbatim when you quote."),
+                   "caveat, never as fact. Quote sources verbatim when you quote. Plain text, no em dashes: use commas, colons or parentheses."),
         ("user", f"Request: {state['user_request']}\n\nChanges with Jev decisions and evidence:\n{changes}"),
     ], role="strong")
     r = report.model_dump()
@@ -323,14 +323,14 @@ async def synthesizer(state, emit):
 
 def to_markdown(r: dict, changes: list[dict]) -> str:
     out = [f"# {r['title']}", "", "## Executive summary", r["executive_summary"], ""]
-    out += [f"- **{h['value']}** {h['label']} — {h['caption']}" for h in r["highlights"]]
+    out += [f"- **{h['value']}** {h['label']} - {h['caption']}" for h in r["highlights"]]
     out += ["", "## Key changes"]
     for i, k in enumerate(r["key_changes"], 1):
         c = changes[k["change_index"]] if 0 <= k["change_index"] < len(changes) else {}
         out += ["", f"### {i}. {k['headline']}" + (f" (impact {c.get('impact_score')}/100)" if c else "")]
         out += [f"- {b}" for b in k["bullets"]]
         if k.get("quote"):
-            out += ["", f"> {k['quote']}" + (f" — {k['quote_source']}" if k.get("quote_source") else "")]
+            out += ["", f"> {k['quote']}" + (f" - {k['quote_source']}" if k.get("quote_source") else "")]
     out += ["", "## Why it matters", r["why_it_matters"], "", "## Recommended actions"]
     out += [f"- {a}" for a in r["recommended_actions"]]
     return "\n".join(out)

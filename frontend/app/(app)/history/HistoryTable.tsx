@@ -71,7 +71,7 @@ export function HistoryTable({ rows }: { rows: HistoryRow[] }) {
                   <td className="py-2 pr-3 font-mono text-[11px] whitespace-nowrap text-dim uppercase">{r.mode}{r.playbook && r.playbook !== "brief" && <Tag tone="info" className="ml-1.5">{playbookLabel(r.playbook)}</Tag>}</td>
                   <td className="py-2 pr-3 text-right font-mono text-[12px]">{r.sources?.[0]?.count ?? 0}</td>
                   <td className="py-2 pr-3 text-right font-mono text-[12px]">{r.changes?.[0]?.count ?? 0}</td>
-                  <td className="py-2 pr-3 text-right font-mono text-[12px] text-dim">{r.duration != null ? `${Math.round(r.duration)}s` : "—"}</td>
+                  <td className="py-2 pr-3 text-right font-mono text-[12px] text-dim">{r.duration != null ? `${Math.round(r.duration)}s` : "-"}</td>
                   <td className="py-2 pr-3 text-right font-mono text-[11px] whitespace-nowrap text-faint">{timeAgo(r.created_at)}</td>
                 </tr>
               ))}

@@ -62,7 +62,7 @@ export function PromptHero({ initial = "", compact = false }: { initial?: string
         {PLAYBOOKS.map((p) => (
           <button key={p.id} type="button" role="radio" aria-checked={playbook === p.id} onClick={() => setPlaybook(p.id)} title={p.hint}
                   className={`rounded-sm border px-2 py-1 font-mono text-[10px] font-semibold tracking-wider transition ${
-                    playbook === p.id ? "border-info bg-info-soft text-info" : "border-line text-dim hover:text-fg"}`}>
+                    playbook === p.id ? "border-fg bg-hover text-fg" : "border-line text-dim hover:text-fg"}`}>
             {p.label}
           </button>
         ))}

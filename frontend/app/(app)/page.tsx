@@ -28,10 +28,9 @@ export default async function TerminalHome() {
   const high = rows.filter((r) => (r.impact_score ?? 0) > 70).length;
 
   return (
-    <div className="grid-bg min-h-full">
+    <div className="min-h-full">
       <div className="mx-auto max-w-[1400px] space-y-3 p-3 md:p-4">
         <section className="panel relative overflow-hidden px-4 py-6 md:px-8 md:py-10">
-          <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-amber/10 blur-3xl" />
           <p className="label"><span className="text-amber">●</span> agentic market intelligence · openai · langgraph · context.dev · jev</p>
           <h1 className="cursor mt-3 max-w-3xl text-2xl font-semibold tracking-tight md:text-4xl">What changed, why it matters, what to do.</h1>
           <div className="mt-6 max-w-3xl"><PromptHero /></div>
@@ -77,7 +76,7 @@ export default async function TerminalHome() {
                     <Tag tone={STATUS_TONE[r.status] ?? "amber"}>{r.status}</Tag>
                     <span className="min-w-0 flex-1 truncate">{r.query}</span>
                     <span className="hidden font-mono text-[11px] text-faint uppercase sm:inline">{r.mode}</span>
-                    <span className="w-14 text-right font-mono text-[11px] text-dim">{r.duration != null ? `${Math.round(r.duration)}s` : "—"}</span>
+                    <span className="w-14 text-right font-mono text-[11px] text-dim">{r.duration != null ? `${Math.round(r.duration)}s` : "-"}</span>
                     <span className="w-24 text-right font-mono text-[11px] text-faint">{timeAgo(r.created_at)}</span>
                   </Link>
                 </li>

@@ -37,10 +37,10 @@ export function Watchlist({ rows }: { rows: WatchRow[] }) {
                 <td className="py-2.5 pr-3">
                   <span className="flex items-center gap-2 font-mono text-[12px] font-semibold uppercase"><Favicon url={c.domain ? `https://${c.domain}` : null} />{c.name}</span>
                 </td>
-                <td className="py-2.5 pr-3 font-mono text-[11px] text-dim">{c.domain ?? "—"}</td>
-                <td className="py-2.5 pr-3"><span className="flex items-center gap-2"><Blocks value={c.top} label="max impact" /><span className="font-mono text-[11px] text-dim">{c.n ? c.top : "—"}</span></span></td>
+                <td className="py-2.5 pr-3 font-mono text-[11px] text-dim">{c.domain ?? "-"}</td>
+                <td className="py-2.5 pr-3"><span className="flex items-center gap-2"><Blocks value={c.top} label="max impact" /><span className="font-mono text-[11px] text-dim">{c.n ? c.top : "-"}</span></span></td>
                 <td className="py-2.5 pr-3 text-right font-mono text-[12px]">{c.n}</td>
-                <td className="py-2.5 pr-3 text-right font-mono text-[11px] text-faint">{c.last ? timeAgo(c.last) : "—"}</td>
+                <td className="py-2.5 pr-3 text-right font-mono text-[11px] text-faint">{c.last ? timeAgo(c.last) : "-"}</td>
                 <td className="pr-3">
                   <button onClick={(e) => { e.stopPropagation(); openPalette(`What changed at ${c.name} recently? Pricing, models, products and docs.`); }}
                           className="btn w-8 px-0" aria-label={`Research ${c.name}`} title={`Research ${c.name}`}><Search className="size-3.5" /></button>

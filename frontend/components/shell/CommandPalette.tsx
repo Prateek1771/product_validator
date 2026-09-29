@@ -108,7 +108,7 @@ export function CommandPalette({ recent }: { recent: { id: string; query: string
         <span role="radiogroup" aria-label="Deliverable" className="flex items-center gap-1">
           {PLAYBOOKS.map((p) => (
             <button key={p.id} role="radio" aria-checked={playbook === p.id} onClick={() => setPlaybook(p.id)} title={p.hint}
-                    className={`rounded-sm px-2 py-1 font-mono text-[10px] font-semibold tracking-wider ${playbook === p.id ? "bg-info text-bg" : "text-dim hover:text-fg"}`}>
+                    className={`rounded-sm px-2 py-1 font-mono text-[10px] font-semibold tracking-wider ${playbook === p.id ? "bg-fg text-bg" : "text-dim hover:text-fg"}`}>
               {p.label}
             </button>
           ))}

@@ -19,10 +19,10 @@ export function Ticker({ items }: { items: TickerItem[] }) {
     return (
       <Link key={`${copy}-${c.id}`} aria-hidden={copy === 1 || undefined} tabIndex={copy === 1 ? -1 : undefined} href={`/research/${c.run_id}`} className="flex shrink-0 items-center gap-2 px-5 hover:text-fg">
         <span className={COLOR[t]}>{GLYPH[t]}</span>
-        <span className="font-semibold text-fg">{(c.company ?? "—").toUpperCase()}</span>
+        <span className="font-semibold text-fg">{(c.company ?? "-").toUpperCase()}</span>
         <span className="text-faint">{(c.change_type ?? "").toUpperCase()}</span>
         <span className="max-w-[28ch] truncate">{c.title}</span>
-        <span className={COLOR[t]}>{c.impact_score ?? "—"}</span>
+        <span className={COLOR[t]}>{c.impact_score ?? "-"}</span>
       </Link>
     );
   });

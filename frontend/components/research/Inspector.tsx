@@ -60,7 +60,7 @@ function Sources({ run }: { run: RunState }) {
               <Tag>{s.type}</Tag>
               {s.crawled && <Tag tone="up">crawled</Tag>}
               {s.relevance === "high" && <Tag tone="amber">high rel</Tag>}
-              {s.provider && <Tag tone="violet">{PROVIDER[s.provider]}</Tag>}
+              {s.provider && <Tag>{PROVIDER[s.provider]}</Tag>}
             </div>
           </a>
         </li>
@@ -87,7 +87,7 @@ function EvidenceList({ run }: { run: RunState }) {
               <p className="text-[13px] leading-snug">{e.claim}</p>
               {e.excerpt && <p className="mt-1 border-l border-line-2 pl-2 font-mono text-[11px] text-dim">“{e.excerpt}”</p>}
               <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-faint">
-                <Tag tone="violet">{e.entity}</Tag>
+                <Tag>{e.entity}</Tag>
                 <Tag>{e.topic}</Tag>
                 <span className="flex items-center gap-1">REL <Blocks value={rel} n={6} tone={rel >= 70 ? "up" : rel >= 40 ? "amber" : "down"} label="reliability" /> {rel}</span>
                 {e.source_url && (
@@ -125,10 +125,10 @@ function JevList({ changes }: { changes: Change[] }) {
               <dd><Blocks value={c.impact_score ?? 0} /></dd>
               <dd><ImpactTag score={c.impact_score} /></dd>
               <dt className="text-faint">EVIDENCE</dt>
-              <dd><Blocks value={c.evidence_quality ?? 0} tone="violet" label="evidence quality" /></dd>
+              <dd><Blocks value={c.evidence_quality ?? 0} tone="info" label="evidence quality" /></dd>
               <dd className="text-dim">{c.evidence_quality}</dd>
               <dt className="text-faint">AFFECTED</dt>
-              <dd className="col-span-2 text-fg uppercase">{c.affected ?? "—"}</dd>
+              <dd className="col-span-2 text-fg uppercase">{c.affected ?? "-"}</dd>
             </dl>
             {probs.length > 0 && (
               <div className="mt-2.5 space-y-1">

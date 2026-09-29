@@ -28,7 +28,7 @@ function linesFor(step: Step, run: RunState, last: boolean): Line[] {
     for (const [i, s] of searches.entries()) {
       const r = step.logs.find((l) => l.query === s.query && !l.message.startsWith("Searching:"));
       out.push({ ...base, key: `${step.key}-s${i}`, t: t(r?.t ?? s.t), state: r ? (r.level === "warn" ? "warn" : "ok") : "run",
-        text: <><span className="text-fg">{s.query}</span>{r && <span className="text-faint"> — {r.message}</span>}</> });
+        text: <><span className="text-fg">{s.query}</span>{r && <span className="text-faint">: {r.message}</span>}</> });
     }
     for (const [i, l] of step.logs.entries()) {
       if (!l.query && l.level === "warn") out.push({ ...base, key: `${step.key}-w${i}`, t: t(l.t), state: "warn", text: <span className="text-amber">{l.message}</span> });

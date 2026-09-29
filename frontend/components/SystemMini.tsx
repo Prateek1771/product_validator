@@ -35,7 +35,7 @@ export function SystemMini() {
             <Link href="/system" className="flex items-center gap-3 px-3 py-2.5 hover:bg-hover">
               <span className={`size-1.5 rounded-full ${DOT[p.status]}`} />
               <span className="w-24 truncate font-mono text-[12px]">{p.name.replace(" (OpenRouter)", "")}</span>
-              {pct != null ? <Blocks value={pct} tone={pct < 15 ? "down" : pct < 40 ? "amber" : "up"} label="credits" /> : <span className="font-mono text-[10px] text-faint">—</span>}
+              {pct != null ? <Blocks value={pct} tone={pct < 15 ? "down" : pct < 40 ? "amber" : "up"} label="credits" /> : <span className="font-mono text-[10px] text-faint">-</span>}
               <span className={`ml-auto font-mono text-[10px] ${p.status === "ok" ? "text-dim" : "text-down"}`}>{LABEL[p.status]}</span>
             </Link>
           </li>

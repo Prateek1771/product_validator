@@ -62,7 +62,6 @@ export function Panel({ title, count, actions, children, className = "", bodyCla
   return (
     <section className={`panel flex min-w-0 flex-col ${className}`}>
       <header className="flex h-9 shrink-0 items-center gap-2 border-b border-line px-3">
-        <span className="size-1.5 rounded-full bg-amber" aria-hidden />
         <h2 className="label text-fg">{title}</h2>
         {count != null && <span className="font-mono text-[10px] text-faint">[{count}]</span>}
         <div className="ml-auto flex items-center gap-1.5">{actions}</div>

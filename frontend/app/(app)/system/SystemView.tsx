@@ -114,7 +114,7 @@ export function SystemView() {
                       <tr key={r.id} className="border-b border-line/60 last:border-0 hover:bg-hover">
                         <td className="py-2 pr-3 pl-3"><Tag tone={STATUS_TONE[r.status] ?? "amber"}>{r.status}</Tag></td>
                         <td className="max-w-sm py-2 pr-3"><Link href={`/research/${r.id}`} className="line-clamp-1 hover:text-amber">{r.query}</Link></td>
-                        <td className="py-2 pr-3 font-mono text-[12px] text-dim">{r.duration != null ? `${r.duration}s` : "—"}</td>
+                        <td className="py-2 pr-3 font-mono text-[12px] text-dim">{r.duration != null ? `${r.duration}s` : "-"}</td>
                         <td className="py-2 pr-3"><Usage usage={r.usage} /></td>
                         <td className="py-2 pr-3 font-mono text-[11px] text-faint">{timeAgo(r.created_at)}</td>
                       </tr>
@@ -144,8 +144,8 @@ function ProviderPanel({ p }: { p: ProviderStatus }) {
       <p className="label">{p.role}</p>
       <div className="mt-3 flex items-center gap-3">
         <span className="label w-16">credits</span>
-        {pct != null ? <Blocks value={pct} n={20} tone={pct < 15 ? "down" : pct < 40 ? "amber" : "up"} label="credits remaining" /> : <span className="font-mono text-[11px] text-faint">—</span>}
-        <span className="ml-auto font-mono text-[12px]">{credit ?? (p.status === "not_configured" ? "—" : "after first call")}</span>
+        {pct != null ? <Blocks value={pct} n={20} tone={pct < 15 ? "down" : pct < 40 ? "amber" : "up"} label="credits remaining" /> : <span className="font-mono text-[11px] text-faint">-</span>}
+        <span className="ml-auto font-mono text-[12px]">{credit ?? (p.status === "not_configured" ? "-" : "after first call")}</span>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded border border-line bg-line font-mono">
         {meters.map(([label, m]) => (
@@ -172,13 +172,13 @@ function ProviderPanel({ p }: { p: ProviderStatus }) {
 }
 
 function Usage({ usage }: { usage: Record<string, number> | null }) {
-  if (!usage) return <span className="text-faint">—</span>;
+  if (!usage) return <span className="text-faint">-</span>;
   const chips = ["context", "tavily", "firecrawl"].map((p) => [p, (usage[`${p}.search`] ?? 0) + (usage[`${p}.scrape`] ?? 0)] as const).filter(([, n]) => n);
   return (
     <span className="flex flex-wrap gap-1">
-      {chips.map(([p, n]) => <Tag key={p} tone={p === "context" ? "info" : "violet"}>{NAME[p]} {n}</Tag>)}
+      {chips.map(([p, n]) => <Tag key={p} tone={p === "context" ? "info" : "dim"}>{NAME[p]} {n}</Tag>)}
       {usage["jev.decide"] ? <Tag tone="up">Jev {usage["jev.decide"]}</Tag> : null}
-      {!chips.length && !usage["jev.decide"] && <span className="text-faint">—</span>}
+      {!chips.length && !usage["jev.decide"] && <span className="text-faint">-</span>}
     </span>
   );
 }

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Terminal palette. Dark is the default; light is "paper". */
+/* Terminal palette: one cool grey family in both themes. Dark is the default. */
 :root,
 [data-theme="dark"] {
   --bg: #07090c;
@@ -11,7 +11,7 @@
   --line-2: #273142;
   --fg: #d7dee8;
   --dim: #9aa5b4;
-  --faint: #7a8494;   /* ≥4.5:1 on every dark surface */
+  --faint: #7a8494;   /* >=4.5:1 on every dark surface */
   --amber: #ffb000;
   --amber-ink: #1a1200;
   --amber-soft: #ffb00014;
@@ -27,24 +27,24 @@
 }
 
 [data-theme="light"] {
-  --bg: #f5f4ef;
+  --bg: #f4f6f8;
   --panel: #ffffff;
-  --panel-2: #f8f7f3;
-  --hover: #f1efe8;
-  --line: #e3e1d8;
-  --line-2: #d4d1c5;
-  --fg: #0d0f12;
-  --dim: #4c5261;
-  --faint: #666b7a;   /* ≥4.5:1 on every paper surface */
-  --amber: #a36400;
+  --panel-2: #f7f8fa;
+  --hover: #eef1f5;
+  --line: #e1e5eb;
+  --line-2: #cfd5de;
+  --fg: #0d1117;
+  --dim: #4a5261;
+  --faint: #5f6776;   /* >=4.5:1 on every light surface */
+  --amber: #935b00;
   --amber-ink: #ffffff;
-  --amber-soft: #a3640012;
-  --up: #0f8a57;
-  --up-soft: #0f8a5712;
-  --down: #d1343b;
-  --down-soft: #d1343b10;
-  --info: #0b73b8;
-  --info-soft: #0b73b810;
+  --amber-soft: #935b0012;
+  --up: #0b7a4c;
+  --up-soft: #0b7a4c12;
+  --down: #c02d34;
+  --down-soft: #c02d3410;
+  --info: #0a67a6;
+  --info-soft: #0a67a610;
   --violet: #6d4bd8;
   --violet-soft: #6d4bd810;
   color-scheme: light;
@@ -52,24 +52,24 @@
 
 @media (prefers-color-scheme: light) {
   [data-theme="system"] {
-    --bg: #f5f4ef;
+    --bg: #f4f6f8;
     --panel: #ffffff;
-    --panel-2: #f8f7f3;
-    --hover: #f1efe8;
-    --line: #e3e1d8;
-    --line-2: #d4d1c5;
-    --fg: #0d0f12;
-    --dim: #4c5261;
-    --faint: #666b7a;   /* ≥4.5:1 on every paper surface */
-    --amber: #a36400;
+    --panel-2: #f7f8fa;
+    --hover: #eef1f5;
+    --line: #e1e5eb;
+    --line-2: #cfd5de;
+    --fg: #0d1117;
+    --dim: #4a5261;
+    --faint: #5f6776;   /* >=4.5:1 on every light surface */
+    --amber: #935b00;
     --amber-ink: #ffffff;
-    --amber-soft: #a3640012;
-    --up: #0f8a57;
-    --up-soft: #0f8a5712;
-    --down: #d1343b;
-    --down-soft: #d1343b10;
-    --info: #0b73b8;
-    --info-soft: #0b73b810;
+    --amber-soft: #935b0012;
+    --up: #0b7a4c;
+    --up-soft: #0b7a4c12;
+    --down: #c02d34;
+    --down-soft: #c02d3410;
+    --info: #0a67a6;
+    --info-soft: #0a67a610;
     --violet: #6d4bd8;
     --violet-soft: #6d4bd810;
     color-scheme: light;
@@ -128,11 +128,11 @@ body {
   @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-line-2 bg-panel-2 px-1 font-mono text-[10px] text-dim;
 }
 @utility btn {
-  @apply inline-flex h-8 items-center justify-center gap-1.5 rounded border border-line bg-panel px-2.5 font-mono text-[11px] font-medium uppercase tracking-wider text-fg transition
+  @apply inline-flex h-8 items-center justify-center gap-1.5 rounded border border-line bg-panel px-2.5 font-mono text-[11px] font-medium uppercase tracking-wider text-fg transition duration-200 ease-[cubic-bezier(.16,1,.3,1)] active:translate-y-px
     hover:border-line-2 hover:bg-hover focus-visible:outline-1 focus-visible:outline-offset-1 focus-visible:outline-amber disabled:pointer-events-none disabled:opacity-40;
 }
 @utility btn-amber {
-  @apply inline-flex h-8 items-center justify-center gap-1.5 rounded bg-amber px-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-amber-ink transition
+  @apply inline-flex h-8 items-center justify-center gap-1.5 rounded bg-amber px-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-amber-ink transition duration-200 ease-[cubic-bezier(.16,1,.3,1)] active:translate-y-px
     hover:brightness-110 focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-amber disabled:pointer-events-none disabled:opacity-40;
 }
 @utility field {
@@ -157,10 +157,14 @@ body {
   background-size: 200% 100%;
   animation: scan 1.4s linear infinite;
 }
-.grid-bg {
-  background-image: linear-gradient(color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px);
-  background-size: 32px 32px;
+/* Scroll reveal for the landing page: CSS scroll-driven, transform + opacity only, progressive enhancement. */
+@keyframes reveal { from { opacity: 0; transform: translateY(16px); } }
+@media (prefers-reduced-motion: no-preference) {
+  /* Hero load-in, staggered with style="--i: n" */
+  .rise { animation: reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+  @supports (animation-timeline: view()) {
+    .reveal { animation: reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .marquee, .cursor::after, .live-dot, .scan { animation: none; }
@@ -172,4 +176,6 @@ body {
 
 @layer base {
   button { text-transform: inherit; letter-spacing: inherit; }
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
 }

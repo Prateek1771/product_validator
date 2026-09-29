@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#07090c" },
-    { media: "(prefers-color-scheme: light)", color: "#f5f4ef" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f6f8" },
   ],
   colorScheme: "dark light",
 };
@@ -45,7 +45,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
-      <body className="min-h-full font-sans text-[14px]">{children}</body>
+      <body className="min-h-full font-sans text-[14px]">
+        <a href="#main" className="fixed top-2 left-2 z-50 -translate-y-16 rounded bg-amber px-3 py-2 font-mono text-[12px] text-amber-ink transition focus:translate-y-0">Skip to content</a>
+        {children}
+      </body>
     </html>
   );
 }

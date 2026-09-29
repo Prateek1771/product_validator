@@ -7,7 +7,6 @@ import { DeliverableView } from "./Deliverable";
 import type { Change } from "@/lib/types";
 import type { RunState } from "./useRun";
 
-const TILE_TONES = ["amber", "info", "up", "violet"] as const;
 
 export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) {
   const r = run.report;
@@ -63,7 +62,7 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
       {r.highlights.length > 0 && (
         <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line md:grid-cols-4">
           {r.highlights.slice(0, 4).map((h, i) => (
-            <div key={i} className="bg-panel"><StatTile value={h.value} label={h.label} sub={h.caption} tone={TILE_TONES[i]} /></div>
+            <div key={i} className="bg-panel"><StatTile value={h.value} label={h.label} sub={h.caption} /></div>
           ))}
         </div>
       )}
@@ -104,7 +103,7 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
                   {k.quote && (
                     <blockquote className="mt-3 rounded-sm bg-panel-2 px-3 py-2 font-mono text-[12px] text-dim">
                       <span className="text-amber">“</span>{k.quote}<span className="text-amber">”</span>
-                      {k.quote_source && <span className="text-faint"> — {k.quote_source}</span>}
+                      {k.quote_source && <span className="text-faint"> - {k.quote_source}</span>}
                     </blockquote>
                   )}
                 </div>
