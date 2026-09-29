@@ -1,5 +1,6 @@
 """LangGraph workflow: planner -> researcher -> evidence_analyst -> decision_engine -(loop?)-> synthesizer."""
 import asyncio
+from collections import Counter
 import time
 from typing import Literal, TypedDict
 
@@ -10,7 +11,7 @@ from pydantic import BaseModel, Field
 from . import decisions, llm, playbooks, tools
 from .config import settings
 
-Topic = Literal["pricing", "products", "models", "docs", "changelog", "news", "blog", "competitors", "market", "reviews", "other"]
+Topic = Literal["pricing", "products", "models", "docs", "changelog", "news", "blog", "competitors", "market", "reviews", "forums", "other"]
 ChangeType = ["pricing", "product", "model", "docs", "policy", "partnership", "other"]
 
 
@@ -314,12 +315,35 @@ async def synthesizer(state, emit):
     r = report.model_dump()
     r["markdown"] = to_markdown(r, state["changes"])
     pb = playbooks.get(state.get("playbook"))
-    if pb.company_schema:
+    r["methodology"] = methodology(state, pb)
+    if pb.summary_schema:
         await emit({"type": "log", "node": "synthesizer", "message": f"Building {pb.label.lower()}: one analyst per company, then a summary"})
         data = await playbooks.build(pb, state, changes)
         r["deliverable"] = {"playbook": pb.id, "label": pb.label, "data": data, "files": playbooks.files(pb, data)}
         r["markdown"] += "\n\n" + pb.to_markdown(data)
     return {"report": r}
+
+
+def methodology(state: dict, pb) -> dict:
+    """How the research was done, computed from the graph state (no LLM): counts, sources, coverage, gaps."""
+    sources, evidence, changes = state.get("sources", []), state.get("evidence", []), state.get("changes", [])
+    mix = Counter(s.get("type") or "other" for s in sources)
+    coverage = []
+    for label, topics in pb.coverage or playbooks.BRIEF_COVERAGE:
+        n = sum(mix[t] for t in topics)
+        coverage.append({"label": label, "sources": n, "pct": min(100, round(100 * n / 3))})  # ponytail: 3 sources = covered
+    rel = [e["reliability"] for e in evidence if isinstance(e.get("reliability"), (int, float))]
+    return {
+        "sources_found": len(sources), "sources_read": sum(1 for s in sources if s.get("content")),
+        "claims": len(evidence), "findings": len(changes), "verified": sum(1 for c in changes if c.get("is_real_change")),
+        "contradictions": state.get("contradictions", []), "rounds": state.get("iteration", 0) + 1,
+        "providers": dict(Counter(s.get("provider") or "unknown" for s in sources)), "source_mix": dict(mix),
+        "coverage": coverage, "completeness": round(sum(c["pct"] for c in coverage) / len(coverage)) if coverage else 0,
+        "gaps": [g["query"] for g in state.get("research_gaps", [])]
+                + [f"No {c['label'].lower()} found" for c in coverage if not c["sources"]],
+        "avg_reliability": round(sum(rel) / len(rel), 2) if rel else None,
+        "entities": [{"name": e.get("name"), "domain": e.get("domain")} for e in state.get("entities", [])],
+    }
 
 
 def to_markdown(r: dict, changes: list[dict]) -> str:

@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { Blocks, ImpactTag, StatTile, Tag } from "@/components/term";
 import { playbookLabel } from "@/lib/playbooks";
+import { briefCharts } from "@/lib/report-model";
+import { ChartGrid } from "./charts";
+import { Methodology } from "./Methodology";
+import { ReportExports } from "./ReportExports";
 import { DeliverableView } from "./Deliverable";
 import type { Change } from "@/lib/types";
 import type { RunState } from "./useRun";
 
 
-export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) {
+/** `print` lays out every section in order (no tabs, no buttons) for the PDF page. */
+export function Brief({ id, run, createdAt, print }: { id?: string; run: RunState; createdAt: string; print?: boolean }) {
   const r = run.report;
   const [tab, setTab] = useState<"deliverable" | "brief">("deliverable");
   if (!r) {
@@ -36,7 +41,7 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
   return (
     <article className="p-4 md:p-6">
       <p className="label">
-        brief · {new Date(createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })} · {verified} sources · {run.evidence.length} claims · {real}/{run.changes.length} changes verified
+        brief · {new Date(createdAt).toLocaleDateString("en-GB", { dateStyle: "medium" })} · {verified} sources · {run.evidence.length} claims · {real}/{run.changes.length} changes verified
       </p>
       {(run.models || run.decider) && (
         <p className="mt-1 font-mono text-[10px] text-faint">
@@ -45,8 +50,10 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
         </p>
       )}
       <h1 className="mt-2 text-2xl leading-tight font-semibold tracking-tight md:text-[30px]">{r.title}</h1>
+      {!print && <div className="mt-3"><ReportExports id={id} report={r} changes={run.changes} sources={run.sources} /></div>}
+      {r.methodology && <div className="mt-4"><Methodology m={r.methodology} sources={run.sources} /></div>}
 
-      {r.deliverable && (
+      {r.deliverable && !print && (
         <div role="tablist" aria-label="Report view" className="mt-4 flex gap-1 border-b border-line">
           {(["deliverable", "brief"] as const).map((t) => (
             <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
@@ -58,7 +65,9 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
         </div>
       )}
 
-      {r.deliverable && tab === "deliverable" ? <div className="mt-5"><DeliverableView d={r.deliverable} /></div> : <>
+      {r.deliverable && (print || tab === "deliverable") && <div className="mt-5"><DeliverableView d={r.deliverable} /></div>}
+      {(!r.deliverable || print || tab === "brief") && <>
+      {print && r.deliverable && <h2 className="mt-8 text-xl font-semibold">Change brief</h2>}
       {r.highlights.length > 0 && (
         <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded border border-line bg-line md:grid-cols-4">
           {r.highlights.slice(0, 4).map((h, i) => (
@@ -71,6 +80,7 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
         <p className="label text-amber">executive summary</p>
         <p className="prose-brief mt-1.5 text-[15px] text-fg">{r.executive_summary}</p>
       </section>
+      <div className="mt-5"><ChartGrid specs={briefCharts(run.changes, r.methodology)} /></div>
 
       <section className="mt-7">
         <p className="label">key changes</p>
@@ -101,7 +111,7 @@ export function Brief({ run, createdAt }: { run: RunState; createdAt: string }) 
                     {k.bullets.map((b, j) => <li key={j} className="flex gap-2"><span className="text-faint">›</span><span>{b}</span></li>)}
                   </ul>
                   {k.quote && (
-                    <blockquote className="mt-3 rounded-sm bg-panel-2 px-3 py-2 font-mono text-[12px] text-dim">
+                    <blockquote className="mt-3 rounded-sm bg-panel-2 px-3 py-2 font-mono text-[12px] text-dim [overflow-wrap:anywhere]">
                       <span className="text-amber">“</span>{k.quote}<span className="text-amber">”</span>
                       {k.quote_source && <span className="text-faint"> - {k.quote_source}</span>}
                     </blockquote>

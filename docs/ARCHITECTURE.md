@@ -110,11 +110,15 @@ stateDiagram-v2
 | `decision_engine` | `decisions.decide` ×(changes + 1): Jev or the LLM decision agent | changes + their claims | per change `decision`, `is_real_change`, `confidence`, `impact_score`, `evidence_quality`, `change_type`, `affected`, `recommended_action`; `decisions.needs_more_research` |
 | `synthesizer` | OpenAI → `Report`, then the playbook schema | changes, evidence, sources | `report` (title, summary, highlights, key_changes, why_it_matters, actions, markdown), plus `report.deliverable` for a non-brief playbook |
 
-**Playbooks** (`app/playbooks.py`) change what a run produces without changing the graph. Each schema mirrors the output template of a marketing skill in `.claude/skills`: `profile` follows competitor-profiling, `pricing` follows the pricing-page teardown, and `battlecard` follows the competitors templates.
+**Playbooks** (`app/playbooks.py`) change what a run produces without changing the graph. Each schema mirrors the output template of a marketing skill in `.claude/skills`: `profile` follows competitor-profiling, `pricing` follows the pricing-page teardown, and `battlecard` follows the competitors templates. `landscape`, `pain`, `sizing` and `opportunity` are **summary-only** (`company_schema=None`): one strong call over all claims plus a 150k-char page digest, then a `post` function computes the numbers (pain share %, TAM = product of inputs with a >15% mismatch check, opportunity score = demand × (11 − competition)).
 
 - **Deeper research.** A playbook also deepens the research. Compared with the brief it plans up to 8 tasks, keeps 6 sources per task, crawls 4 of them, reads 15k chars per page (220k total), and asks for ≥30 claims. That costs about 40 web credits per run, and the Tavily and Firecrawl fallbacks absorb overflow.
 - **Two-stage build.** `build()` makes one strong-model call per company, in parallel, each fed that company's claims and pages from `company_context()`: its own pages plus shared pages that name no other company. A summary call then runs over those results: the comparison matrix, positioning map, cost scenarios, or head-to-head.
 - **Output.** The result is `report.deliverable = {playbook, label, data, files}`. `files` holds skill-format markdown (one profile or teardown per company) that the UI offers as downloads next to `data.json`.
+
+- **Methodology.** The synthesizer also writes `report.methodology`, computed without an LLM: counts, providers, source mix, per-topic coverage from the playbook's `coverage` (3 sources = 100%), completeness, gaps and contradictions.
+
+- **Charts and exports.** `frontend/lib/report-model.ts` turns a report into `ChartSpec[]` (`briefCharts`, `deliverableCharts`) and `TableSpec[]` (`tablesFor`). One model feeds the on-screen SVG charts (`components/research/charts.tsx`), the PDF page (`app/report/[id]`: always light, A4 print CSS, `?print=1` opens Save as PDF), the PowerPoint deck (`lib/exports/pptx.ts`, pptxgenjs, native charts) and the Excel workbook (`lib/exports/xlsx.ts`, exceljs). Both builders are loaded with `import()` on click, so they don't add to the page bundle.
 
 `brief` is the default and adds nothing. The frontend renders the deliverable in `components/research/Deliverable.tsx` as a tab next to the change brief, and it tolerates reports saved in older shapes.
 

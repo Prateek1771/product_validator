@@ -90,7 +90,7 @@ export function SystemView() {
                       <td className="py-2 pr-3 text-right">{p.platform ? <Tag tone="info">yes</Tag> : <Tag>byok only</Tag>}</td>
                       <td className="py-2 pr-3 text-right font-mono">{p.calls}</td>
                       <td className="py-2 pr-3 text-right font-mono text-up">{p.byok}</td>
-                      <td className="py-2 pr-3 text-right font-mono text-dim">{p.tokens.toLocaleString()}</td>
+                      <td className="py-2 pr-3 text-right font-mono text-dim">{p.tokens.toLocaleString("en-US")}</td>
                       <td className={`py-2 pr-3 text-right font-mono ${p.failures ? "text-down" : "text-faint"}`}>{p.failures}</td>
                     </tr>
                   ))}
@@ -135,8 +135,8 @@ function ProviderPanel({ p }: { p: ProviderStatus }) {
   const c = p.credits;
   const pct = creditPct(p);
   const credit = c?.remaining_usd != null ? `$${c.remaining_usd.toFixed(2)} / $${c.total_usd}`
-    : c?.remaining != null ? `${c.remaining.toLocaleString()}${c.total ? ` / ${c.total.toLocaleString()}` : ""}`
-    : c?.used != null ? `${c.used.toLocaleString()} used${c.total ? ` / ${c.total.toLocaleString()}` : ""}` : null;
+    : c?.remaining != null ? `${c.remaining.toLocaleString("en-US")}${c.total ? ` / ${c.total.toLocaleString("en-US")}` : ""}`
+    : c?.used != null ? `${c.used.toLocaleString("en-US")} used${c.total ? ` / ${c.total.toLocaleString("en-US")}` : ""}` : null;
   const meters = [["SEARCH", p.search], ["SCRAPE", p.scrape], ["DECIDE", p.decide]].filter((m): m is [string, NonNullable<ProviderStatus["search"]>] => !!m[1]);
 
   return (

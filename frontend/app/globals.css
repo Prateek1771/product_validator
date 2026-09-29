@@ -171,7 +171,12 @@ body {
 }
 
 @media print {
+  @page { size: A4; margin: 16mm; }
   [data-print-hide] { display: none !important; }
+  html, body { background: #fff !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .chart, figure, table, blockquote, article li { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
 }
 
 @layer base {

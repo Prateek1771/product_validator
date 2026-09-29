@@ -26,6 +26,8 @@ def sample(t, name="Acme"):
 
 
 def deliverable(p, names=("Anthropic", "OpenAI")):
+    if not p.company_schema:
+        return p.post(sample(p.summary_schema).model_dump())
     companies = [sample(p.company_schema, n).model_dump() for n in names]
     summary = sample(p.summary_schema).model_dump()
     if p.id == "battlecard":
@@ -38,10 +40,14 @@ HEADINGS = {
                 "Strengths & Weaknesses", "Competitive Implications", "Raw Data Sources", "Side-by-Side Comparison", "Positioning Map"],
     "pricing": ["Tiers", "Scores", "Paste test", "Dimension-by-dimension", "Prioritized fixes", "The one thing", "Cost scenarios"],
     "battlecard": ["TL;DR", "Feature Comparison", "Pricing", "Service & Support", "Who Should Choose", "Migration", "Objection handling"],
+    "landscape": ["Market map", "Competitor matrix", "Strengths", "Threats", "Trends", "Emerging players", "Takeaways"],
+    "pain": ["Pain points", "Sentiment", "Feature requests", "Who is affected", "Opportunity gaps"],
+    "sizing": ["TAM", "SAM", "SOM", "Growth", "Scenarios", "Caveats"],
+    "opportunity": ["Call", "Segments", "Gaps", "Competitors to watch", "Risks", "First steps"],
 }
 
 
-@pytest.mark.parametrize("pid", ["profile", "pricing", "battlecard"])
+@pytest.mark.parametrize("pid", list(HEADINGS))
 def test_markdown_follows_skill_template(pid):
     p = pb.PLAYBOOKS[pid]
     d = deliverable(p)
@@ -49,7 +55,7 @@ def test_markdown_follows_skill_template(pid):
     for h in HEADINGS[pid]:
         assert h in md, h
     f = pb.files(p, d)
-    assert len(f) == (1 if pid == "battlecard" else 2) and all(x["markdown"] for x in f)
+    assert len(f) == (2 if pid in ("profile", "pricing") else 1) and all(x["markdown"] for x in f)
 
 
 def test_brief_has_no_deliverable_and_unknown_falls_back():
@@ -103,3 +109,37 @@ def test_brief_playbook_unchanged(monkeypatch):
     out, calls = _run(monkeypatch, "brief")
     assert "deliverable" not in out["report"]
     assert all(s not in (pb.CompanyPricing, pb.PricingSummary) for s, *_ in calls)
+
+
+def test_pain_shares_are_computed_from_counts():
+    d = pb._pain_post({"themes": [{"theme": "a", "mentions": 3}, {"theme": "b", "mentions": 1}],
+                       "sentiment": {"positive": 1, "neutral": 1, "negative": 2}})
+    assert [t["share_pct"] for t in d["themes"]] == [75.0, 25.0]
+    assert d["sentiment_pct"] == {"positive": 25.0, "neutral": 25.0, "negative": 50.0}
+    assert d["sentiment_basis"] == "mentions"
+    agg = pb._pain_post({"themes": [{"theme": "a", "mentions": 3}], "sentiment": {"positive": 2740, "neutral": 70, "negative": 18}})
+    assert agg["sentiment_basis"] == "ratings"
+
+
+def test_sizing_shows_the_product_of_inputs_and_flags_mismatch():
+    lvl = lambda stated: {"value_usd": stated, "method": "m", "inputs": [
+        {"label": "households", "value": 1_000_000, "unit": "", "source_url": None},
+        {"label": "spend", "value": 200, "unit": "USD", "source_url": None}]}
+    d = pb._sizing_post({"tam": lvl(200_000_000), "sam": lvl(900_000_000), "som": {"value_usd": 5, "method": "m", "inputs": []}})
+    assert d["tam"]["computed_usd"] == 200_000_000 and d["tam"]["check"] == "ok"
+    assert d["sam"]["check"] == "mismatch" and d["som"]["computed_usd"] is None
+
+
+def test_opportunity_ranks_segments_by_demand_over_competition():
+    d = pb._opportunity_post({"segments": [{"segment": "crowded", "demand": 9, "competition": 9},
+                                           {"segment": "open", "demand": 7, "competition": 2}]})
+    assert [x["segment"] for x in d["segments"]] == ["open", "crowded"]
+
+
+def test_market_playbook_is_one_call_and_report_has_methodology(monkeypatch):
+    out, calls = _run(monkeypatch, "sizing")
+    assert len([c for c in calls if c[0] is pb.MarketSizing]) == 1
+    m = out["report"]["methodology"]
+    assert m["sources_found"] == len(out["sources"]) and m["claims"] == len(out["evidence"])
+    assert [c["label"] for c in m["coverage"]] == [c[0] for c in pb.get("sizing").coverage]
+    assert "computed_usd" in out["report"]["deliverable"]["data"]["tam"]

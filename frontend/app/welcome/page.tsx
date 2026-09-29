@@ -22,6 +22,10 @@ const PLAYBOOK_COPY: Record<string, string> = {
   profile: "Side-by-side profiles of each competitor: positioning, pricing, customers, strengths and weaknesses, plus a positioning map.",
   pricing: "Every tier and hidden cost, what a typical customer pays on each, and how clear each pricing page is.",
   battlecard: "Where each side wins, answers to common objections, questions that expose weak spots, and who should pick which.",
+  landscape: "A market map of every player by category and stage, a capability matrix, SWOT for a new entrant, and the trends moving the market.",
+  pain: "What customers complain about, ranked by share of mentions, with real quotes from reviews and forums and the gaps nobody fills.",
+  sizing: "TAM, SAM and SOM built from sourced inputs you can check, with growth history, forecasts and bear, base and bull cases.",
+  opportunity: "Where demand is high and competition is thin, the risks to plan for, and a clear go or no-go with first steps.",
 };
 
 const FEATURES: { group: string; items: [string, string][] }[] = [
@@ -36,7 +40,7 @@ const FEATURES: { group: string; items: [string, string][] }[] = [
   ] },
   { group: "Fits your workflow", items: [
     ["Signals and watchlist", "Verified findings from every run in one feed. Companies join your watchlist as they come up."],
-    ["Exports", "Download Markdown per company or the raw JSON, or print to PDF."],
+    ["Download anywhere", "Every report downloads as a designed PDF, an editable PowerPoint deck with native charts, or an Excel workbook. Markdown and JSON too."],
     ["Keyboard first", "Ctrl K to start anything, number keys to switch views, j and k to move through lists."],
   ] },
 ];
@@ -151,7 +155,7 @@ export default function Landing() {
         <section className="border-y border-line bg-panel">
           <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 py-20 md:py-24 lg:grid-cols-[1fr_1.35fr]">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">One question, four kinds of report</h2>
+              <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">One question, eight kinds of report</h2>
               <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-dim">Research your own product&apos;s market, a competitor, or a whole category. Pick the report before you run.</p>
               <dl className="mt-8 space-y-6">
                 {PLAYBOOKS.map((p) => (

@@ -44,7 +44,7 @@ RUNS: dict[str, Run] = {}
 class ResearchIn(BaseModel):
     query: str = Field(min_length=3, max_length=2000)
     mode: Literal["deep", "web", "company", "market"] = "deep"
-    playbook: Literal["brief", "profile", "pricing", "battlecard"] = "brief"
+    playbook: Literal["brief", "profile", "pricing", "battlecard", "landscape", "pain", "sizing", "opportunity"] = "brief"
 
 
 def now() -> str:

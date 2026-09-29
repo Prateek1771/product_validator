@@ -21,6 +21,13 @@ export type Report = {
   highlights: { label: string; value: string; caption: string }[];
   key_changes: { change_index: number; headline: string; bullets: string[]; quote: string | null; quote_source: string | null }[];
   deliverable?: Deliverable;
+  methodology?: Methodology;
+};
+
+export type Methodology = {
+  sources_found: number; sources_read: number; claims: number; findings: number; verified: number; contradictions: string[]; rounds: number;
+  providers: Record<string, number>; source_mix: Record<string, number>; coverage: { label: string; sources: number; pct: number }[];
+  completeness: number; gaps: string[]; avg_reliability: number | null; entities: { name: string; domain: string | null }[];
 };
 
 // Mirrors backend/app/playbooks.py. Reports saved before the skill-template schemas lack most fields, so views read them defensively.
@@ -32,12 +39,13 @@ export type CompanyProfile = {
   value_prop: { headline: string; subheadline: string }; target_audience: string; positioning_angle: string;
   messaging_themes: Sourced[]; capabilities: { name: string; description: string }[]; differentiators: string[];
   integrations: { count: string; key: string[] }; product_direction: string[];
-  pricing: { tiers: { name: string; price: string; inclusions: string[] }[]; billing: string; free_trial: string; notable: string };
+  pricing: { tiers: { name: string; price: string; monthly_usd?: number | null; inclusions: string[] }[]; billing: string; free_trial: string; notable: string };
   social_proof: { named_customers: string[]; industries: string[]; case_study_themes: string[]; ratings: { site: string; rating: string; count: string }[] };
   review_themes: { theme: string; sentiment: "positive" | "negative" | "mixed"; quote: string | null; source_url: string | null }[];
   content_signals: { content_types: string[]; focus_areas: string[] };
   strengths: Sourced[]; weaknesses: Sourced[]; implications: { opportunities: string[]; threats: string[] };
   sources: { page: string; url: string }[];
+  scorecard?: { dimension: string; score: number; note: string }[];
 };
 export type CompetitorProfiles = {
   companies: CompanyProfile[]; landscape: string; comparison: Row[]; takeaways: string[]; opportunities: string[];
@@ -46,13 +54,13 @@ export type CompetitorProfiles = {
 export type Verdict = { dimension: string; verdict: "pass" | "partial" | "gap"; note: string };
 export type CompanyPricing = {
   name: string; value_metric: string; pricing_model: string; free_tier: string; billing_options: string; annual_discount: string;
-  tiers: { name: string; price: string; billing: string; limits: string; inclusions: string[]; is_anchor: boolean; notes?: string | null }[];
+  tiers: { name: string; price: string; monthly_usd?: number | null; billing: string; limits: string; inclusions: string[]; is_anchor: boolean; notes?: string | null }[];
   enterprise: string; hidden_costs: string[];
   changes: { date: string | null; what: string; direction: "up" | "down" | "new" | "removed"; source_url?: string | null }[];
   rubric_human: Verdict[]; rubric_agent: Verdict[]; paste_test: string;
   fixes: { fix: string; impact: "high" | "medium" | "low"; effort: "high" | "medium" | "low"; why: string }[]; the_one_thing: string;
 };
-export type PricingTeardown = { companies: CompanyPricing[]; comparison: Row[]; cost_scenarios: Row[]; insights: string[]; recommendation: string };
+export type PricingTeardown = { companies: CompanyPricing[]; comparison: Row[]; cost_scenarios: (Row & { amounts_usd?: (number | null)[] })[]; insights: string[]; recommendation: string };
 export type BattleSide = {
   name: string; ideal_customer: string; choose_if: string[]; pricing_summary: string;
   support: { documentation: string; channels: string; sla: string; onboarding: string };
@@ -69,11 +77,46 @@ export type Battlecard = {
   objections: { objection: string; response: string }[]; landmines: string[];
   proof_points: ({ point: string; source_url: string | null } | { claim: string; source_url: string | null })[];
 };
+export type Landscape = {
+  market: string; overview: string; takeaways: string[];
+  categories: { name: string; description: string; companies: { name: string; domain: string | null; one_liner: string; stage: "leader" | "challenger" | "emerging" | "niche" }[] }[];
+  matrix: { dimensions: string[]; rows: { company: string; scores: number[] }[] };
+  swot: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[] };
+  trends: { trend: string; direction: "up" | "down" | "flat"; evidence: string; source_url: string | null }[];
+  emerging: { name: string; why: string }[]; stage_counts?: { stage: string; count: number }[];
+};
+export type CustomerPain = {
+  subject: string; summary: string;
+  themes: { theme: string; sentiment: "negative" | "mixed" | "positive"; mentions: number; severity: number; summary: string; share_pct?: number;
+    quotes: { quote: string; where: string; source_url: string | null }[] }[];
+  feature_requests: { request: string; mentions: number }[]; segments: { segment: string; main_pain: string }[];
+  sentiment: { positive: number; neutral: number; negative: number }; sentiment_pct?: { positive: number; neutral: number; negative: number }; sentiment_basis?: "mentions" | "ratings";
+  opportunity_gaps: { gap: string; evidence: string; idea: string }[];
+};
+export type SizeLevel = { value_usd: number; computed_usd?: number | null; check?: "ok" | "mismatch"; method: string;
+  inputs: { label: string; value: number; unit: string; source_url: string | null }[] };
+export type MarketSizing = {
+  definition: string; geography: string; year: number; tam: SizeLevel; sam: SizeLevel; som: SizeLevel;
+  growth: { cagr_pct: number | null; points: { year: number; value_usd: number; forecast: boolean; source_url: string | null }[] };
+  scenarios: { case: "bear" | "base" | "bull"; year: number; value_usd: number; assumption: string }[]; confidence: number; caveats: string[];
+};
+export type Opportunity = {
+  thesis: string; summary: string;
+  segments: { segment: string; need: string; demand: number; competition: number; evidence: string; source_url: string | null; score?: number }[];
+  gaps: { gap: string; why_now: string; target_user: string; evidence: string; source_url: string | null }[];
+  competitors_to_watch: { name: string; threat: number; why: string }[];
+  risks: { risk: string; likelihood: number; impact: number; mitigation: string }[];
+  recommendation: { call: "go" | "conditional" | "no-go"; confidence: number; rationale: string; first_steps: string[] };
+};
 type DeliverableBase = { label: string; files?: { name: string; markdown: string }[] };
 export type Deliverable = DeliverableBase & (
   | { playbook: "profile"; data: CompetitorProfiles }
   | { playbook: "pricing"; data: PricingTeardown }
-  | { playbook: "battlecard"; data: Battlecard });
+  | { playbook: "battlecard"; data: Battlecard }
+  | { playbook: "landscape"; data: Landscape }
+  | { playbook: "pain"; data: CustomerPain }
+  | { playbook: "sizing"; data: MarketSizing }
+  | { playbook: "opportunity"; data: Opportunity });
 export type Task = { topic: string; query: string; include_domains: string[]; freshness: string | null };
 
 export type RunEvent = { t: number } & (

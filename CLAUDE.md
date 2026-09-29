@@ -74,12 +74,14 @@ Before calling a change done, run pytest, tsc, eslint and `next build`.
 - **LLM provider:** add a branch to `llm.chat()`, entries in `keys.LLM_PROVIDERS`, `MODEL_ENDPOINTS` and `_parse_models`, a new migration widening the provider checks, and a row in `LLM` in `SettingsView.tsx`.
 - **Playbook:** register a `Playbook` in `backend/app/playbooks.py`. It needs:
   - a planner hint
-  - a `company_schema` (one call per company) and a `summary_schema`, both pydantic with lists only, since OpenAI strict mode rejects dicts
+  - a `company_schema` (one call per company) and a `summary_schema`, both pydantic with lists only, since OpenAI strict mode rejects dicts. `company_schema=None` makes it summary-only (one call)
   - their prompts
   - `to_markdown` and, optionally, `company_markdown` for per-company downloads
   - depth settings (`**DEEP`)
+  - `coverage` (topic groups for the methodology meter) and, when numbers are derived, a `post` function. Compute maths there; never trust LLM arithmetic
 
-  Add its id to `ResearchIn.playbook` in `main.py` and to a migration that widens the `research_runs.playbook` check. On the frontend, add it to `lib/playbooks.ts`, its type to `lib/types.ts`, and a view in `components/research/Deliverable.tsx`, reading fields through `arr()` / `txt()` so older reports still render.
+  Add its id to `ResearchIn.playbook` in `main.py` and to a migration that widens the `research_runs.playbook` check. On the frontend, add it to `lib/playbooks.ts`, its type to `lib/types.ts`, and a view in `components/research/Deliverable.tsx`, reading fields through `arr()` / `txt()` so older reports still render. Add its charts to `deliverableCharts` and its sheets to `tablesFor` in `lib/report-model.ts`; the UI, the PDF, the PPTX and the XLSX all read from there.
+- **Chart formats:** use `toLocaleString("en-US")` / a fixed locale in anything rendered on the server, or hydration fails on machines whose locale is not en-US. Grid cells that hold charts or tables need `min-w-0`.
 - **Page:** create `app/(app)/<route>/page.tsx` using `PageTitle` + `Panel`, then add a `lib/nav.ts` entry, which also gives it a hotkey and a palette entry.
 - **Column or table:** create a new `migrations/00N_*.sql` and apply it with `scripts/sql.py`. Don't edit applied migrations.
 

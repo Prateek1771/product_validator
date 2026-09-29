@@ -10,6 +10,16 @@ MKT·INTEL is free to use at https://mkt-intel.vercel.app. A quick brief takes a
 - Competitor profile: side-by-side profiles of each competitor (positioning, pricing, customers, strengths and weaknesses) plus a positioning map.
 - Pricing teardown: every tier and hidden cost, what a typical customer pays on each, and how clear each pricing page is for human buyers and AI agents.
 - Battlecard: where each side wins, answers to common objections, questions that expose weak spots, and who should pick which.
+- Market landscape: a market map of every player by category and stage, a capability matrix, SWOT for a new entrant, trends and emerging players.
+- Customer pain: complaints ranked by share of mentions, with real quotes from reviews and forums, feature requests, affected segments and unmet gaps.
+- Market sizing: TAM, SAM and SOM built from sourced inputs. The app multiplies the inputs itself and flags any figure that does not match. Also growth history, forecasts and bear, base and bull cases.
+- Opportunity: segments scored by demand and competition, market gaps, risks with likelihood and impact, and a go, conditional or no-go call with first steps.
+
+Every report includes charts, a methodology section (sources read, verified findings, research completeness per topic, named gaps, contradictions) and a source-quality score for each source.
+
+## Downloads
+
+Every report downloads as a designed PDF, a PowerPoint deck with native, editable charts, an Excel workbook (one sheet per table, with source links), Markdown or JSON.
 
 ## How it works
 

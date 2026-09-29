@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, BookmarkCheck, Check, Download, Link2, Printer } from "lucide-react";
+import { Bookmark, BookmarkCheck, Check, Link2 } from "lucide-react";
 import { createBrowserClient } from "@insforge/sdk/ssr";
 import { Tag } from "@/components/term";
 import { AgentLog } from "./AgentLog";
@@ -16,12 +16,12 @@ export function ResearchView({ id, query, mode, createdAt, savedInitially }: {
   id: string; query: string; mode: string; createdAt: string; savedInitially: boolean;
 }) {
   const run = useRun(id);
-  return <ResearchLayout run={run} query={query} mode={mode} createdAt={createdAt} savedInitially={savedInitially} />;
+  return <ResearchLayout id={id} run={run} query={query} mode={mode} createdAt={createdAt} savedInitially={savedInitially} />;
 }
 
 /** Pure layout, so it can also render fixture state. */
-export function ResearchLayout({ run, query, mode, createdAt, savedInitially }: {
-  run: RunState; query: string; mode: string; createdAt: string; savedInitially: boolean;
+export function ResearchLayout({ id, run, query, mode, createdAt, savedInitially }: {
+  id?: string; run: RunState; query: string; mode: string; createdAt: string; savedInitially: boolean;
 }) {
   const [saved, setSaved] = useState(savedInitially);
   const [copied, setCopied] = useState(false);
@@ -35,14 +35,6 @@ export function ResearchLayout({ run, query, mode, createdAt, savedInitially }: 
     setSaved(!saved);
     const { error } = await insforge.database.from("reports").update({ saved: !saved }).eq("id", run.reportId);
     if (error) setSaved(saved);
-  }
-  function exportMd() {
-    if (!run.report) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([run.report.markdown], { type: "text/markdown" }));
-    a.download = `${run.report.title.replace(/[^\w]+/g, "-").toLowerCase()}.md`;
-    a.click();
-    URL.revokeObjectURL(a.href);
   }
   async function share() {
     await navigator.clipboard.writeText(location.href);
@@ -66,8 +58,6 @@ export function ResearchLayout({ run, query, mode, createdAt, savedInitially }: 
             {saved ? <BookmarkCheck className="size-3.5 text-amber" /> : <Bookmark className="size-3.5" />}<span className="hidden xl:inline">{saved ? "saved" : "save"}</span>
           </button>
           <button onClick={share} className="btn" title="Copy link">{copied ? <Check className="size-3.5 text-up" /> : <Link2 className="size-3.5" />}<span className="hidden xl:inline">link</span></button>
-          <button onClick={exportMd} disabled={!run.report} className="btn" title="Export Markdown"><Download className="size-3.5" /><span className="hidden xl:inline">.md</span></button>
-          <button onClick={() => print()} disabled={!run.report} className="btn w-8 px-0" aria-label="Print or save as PDF"><Printer className="size-3.5" /></button>
         </div>
       </div>
 
@@ -86,7 +76,7 @@ export function ResearchLayout({ run, query, mode, createdAt, savedInitially }: 
           <AgentLog run={run} />
         </aside>
         <section className={`${paneCls("brief")} min-h-0 flex-col overflow-y-auto`}>
-          <Brief run={run} createdAt={createdAt} />
+          <Brief id={id} run={run} createdAt={createdAt} />
         </section>
         <aside className={`${paneCls("inspect")} min-h-0 flex-col border-l border-line bg-panel`} data-print-hide>
           <Inspector run={run} />

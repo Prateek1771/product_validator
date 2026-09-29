@@ -76,6 +76,8 @@ class Integrations(BaseModel):
 class ProfileTier(BaseModel):
     name: str
     price: str = Field(description="As published, e.g. '$20/user/mo', '$3 / MTok input', 'Contact sales'")
+    monthly_usd: float | None = Field(description="Chart value: the flat price per month in USD (annual prices divided by 12). "
+                                                  "null when usage-based, custom or not comparable")
     inclusions: list[str]
 
 
@@ -121,6 +123,15 @@ class PageRef(BaseModel):
     url: str
 
 
+SCORE_DIMS = ("Product breadth", "Pricing accessibility", "Enterprise readiness", "Ecosystem", "Customer sentiment")
+
+
+class Score(BaseModel):
+    dimension: Literal[SCORE_DIMS]
+    score: int = Field(description="1-5, judged only from the sources")
+    note: str
+
+
 class CompanyProfile(BaseModel):
     name: str
     domain: str | None
@@ -141,6 +152,7 @@ class CompanyProfile(BaseModel):
     weaknesses: list[Sourced]
     implications: Implications
     sources: list[PageRef] = Field(description="Pages this profile is based on")
+    scorecard: list[Score] = Field(description="Exactly one score for each of: " + ", ".join(SCORE_DIMS))
 
 
 class MapPoint(BaseModel):
@@ -244,6 +256,8 @@ class PriceTier(BaseModel):
     limits: str
     inclusions: list[str]
     is_anchor: bool = Field(description="The recommended / anchor tier in good-better-best")
+    monthly_usd: float | None = Field(description="Chart value: the flat price per month in USD (annual prices divided by 12). "
+                                                  "null when usage-based, custom or not comparable")
 
 
 class PriceChange(BaseModel):
@@ -278,10 +292,16 @@ class CompanyPricing(BaseModel):
     the_one_thing: str = Field(description="The single highest-leverage fix")
 
 
+class CostRow(BaseModel):
+    dimension: str = Field(description="Scenario description, e.g. 'Store doing $50k/month in sales'")
+    values: list[str] = Field(description="One costed answer per company, same order as the companies, with the arithmetic")
+    amounts_usd: list[float | None] = Field(description="Chart values: the monthly cost in USD per company, same order; null if unknown")
+
+
 class PricingSummary(BaseModel):
     comparison: list[Row] = Field(description="Value metric, model, free tier, entry price, mid price, flagship price, "
                                               "enterprise, discounts, rate limits, notable")
-    cost_scenarios: list[Row] = Field(description="3 typical usage profiles (dimension = scenario description), each costed "
+    cost_scenarios: list[CostRow] = Field(description="3 typical usage profiles (dimension = scenario description), each costed "
                                                   "per company from published prices, showing the arithmetic briefly")
     insights: list[str]
     recommendation: str = Field(description="The single highest-leverage takeaway for the reader")
@@ -418,6 +438,316 @@ def _battlecard_md(d: dict) -> str:
     return "\n".join(out + ["", "## Proof points"] + _bullets(d["proof_points"], _src))
 
 
+
+# ======================= market landscape =======================
+class LandscapeCompany(BaseModel):
+    name: str
+    domain: str | None
+    one_liner: str
+    stage: Literal["leader", "challenger", "emerging", "niche"]
+
+
+class Category(BaseModel):
+    name: str
+    description: str
+    companies: list[LandscapeCompany]
+
+
+class MatrixRow(BaseModel):
+    company: str
+    scores: list[int] = Field(description="1-5 per dimension, same order as the dimensions")
+
+
+class Matrix(BaseModel):
+    dimensions: list[str] = Field(description="4-6 decisive buying criteria for this market")
+    rows: list[MatrixRow] = Field(description="The 6-10 most important companies")
+
+
+class Swot(BaseModel):
+    strengths: list[str]
+    weaknesses: list[str]
+    opportunities: list[str]
+    threats: list[str]
+
+
+class Trend(BaseModel):
+    trend: str
+    direction: Literal["up", "down", "flat"]
+    evidence: str
+    source_url: str | None
+
+
+class Emerging(BaseModel):
+    name: str
+    why: str
+
+
+class Landscape(BaseModel):
+    market: str = Field(description="The market as the reader would name it")
+    overview: str = Field(description="One paragraph: size signals, structure, who leads and why")
+    categories: list[Category] = Field(description="3-6 segments of the market, each with its companies")
+    matrix: Matrix
+    swot: Swot = Field(description="SWOT of the market for a new entrant (or for the reader's product if named)")
+    trends: list[Trend]
+    emerging: list[Emerging]
+    takeaways: list[str] = Field(description="3-5 strategic observations")
+
+
+STAGES = ("leader", "challenger", "emerging", "niche")
+
+
+def _landscape_post(d: dict) -> dict:
+    counts = dict.fromkeys(STAGES, 0)
+    for c in d["categories"]:
+        for co in c["companies"]:
+            counts[co["stage"]] += 1
+    return {**d, "stage_counts": [{"stage": k, "count": v} for k, v in counts.items()]}
+
+
+def _landscape_md(d: dict) -> str:
+    m = d["matrix"]
+    out = [f"# Market landscape: {d['market']}", "", d["overview"], "", "## Market map"]
+    for c in d["categories"]:
+        out += ["", f"### {c['name']}", c["description"], ""]
+        out += [f"- **{x['name']}** ({x['stage']}): {x['one_liner']}" for x in c["companies"]]
+    out += ["", "## Competitor matrix (1-5)", "", "| Company | " + " | ".join(m["dimensions"]) + " |",
+            "|---" * (len(m["dimensions"]) + 1) + "|"]
+    out += [f"| {r['company']} | " + " | ".join(str(v) for v in r["scores"]) + " |" for r in m["rows"]]
+    for k in ("strengths", "weaknesses", "opportunities", "threats"):
+        out += ["", f"## {k.capitalize()}"] + _bullets(d["swot"][k])
+    out += ["", "## Trends"] + _bullets(d["trends"], lambda t: f"[{t['direction']}] {t['trend']}: {t['evidence']}")
+    out += ["", "## Emerging players"] + _bullets(d["emerging"], lambda e: f"**{e['name']}**: {e['why']}")
+    return "\n".join(out + ["", "## Takeaways"] + _bullets(d["takeaways"]))
+
+
+# ======================= customer pain =======================
+class PainQuote(BaseModel):
+    quote: str
+    where: str = Field(description="Site or community, e.g. 'Reddit r/Notion', 'G2 review'")
+    source_url: str | None
+
+
+class PainTheme(BaseModel):
+    theme: str
+    sentiment: Literal["negative", "mixed", "positive"]
+    mentions: int = Field(description="How many distinct sourced complaints or comments raise this theme")
+    severity: int = Field(description="1-5: how much it hurts users (5 = makes them leave)")
+    summary: str
+    quotes: list[PainQuote]
+
+
+class FeatureRequest(BaseModel):
+    request: str
+    mentions: int
+
+
+class Segment(BaseModel):
+    segment: str
+    main_pain: str
+
+
+class Sentiment(BaseModel):
+    positive: int = Field(description="Count of positive mentions among the reviews and posts you read (NOT a platform's total star-rating counts)")
+    neutral: int
+    negative: int
+
+
+class Gap(BaseModel):
+    gap: str
+    evidence: str
+    idea: str = Field(description="A product or positioning idea that closes the gap")
+
+
+class CustomerPain(BaseModel):
+    subject: str = Field(description="The product, company or market the voices are about")
+    summary: str
+    themes: list[PainTheme] = Field(description="5-10 themes, biggest first")
+    feature_requests: list[FeatureRequest]
+    segments: list[Segment] = Field(description="Who complains and what hurts them most")
+    sentiment: Sentiment
+    opportunity_gaps: list[Gap]
+
+
+def _pain_post(d: dict) -> dict:
+    total = sum(max(0, t["mentions"]) for t in d["themes"]) or 1
+    themes = [{**t, "share_pct": round(100 * max(0, t["mentions"]) / total, 1)} for t in d["themes"]]
+    n = sum(max(0, v) for v in d["sentiment"].values()) or 1
+    # Counts far above the mentions actually read are a platform's aggregate ratings, not this sample: label them so.
+    basis = "ratings" if n > 3 * total else "mentions"
+    return {**d, "themes": themes, "sentiment_basis": basis,
+            "sentiment_pct": {k: round(100 * max(0, v) / n, 1) for k, v in d["sentiment"].items()}}
+
+
+def _pain_md(d: dict) -> str:
+    out = [f"# Customer pain report: {d['subject']}", "", d["summary"], "", "## Pain points", "",
+           "| Theme | Share | Mentions | Severity | Sentiment |", "|---|---|---|---|---|"]
+    out += [f"| {t['theme']} | {t.get('share_pct', '')}% | {t['mentions']} | {t['severity']}/5 | {t['sentiment']} |" for t in d["themes"]]
+    for t in d["themes"]:
+        out += ["", f"### {t['theme']}", t["summary"]] + [f"> \"{q['quote']}\" ({q['where']})" for q in t["quotes"]]
+    sp = d.get("sentiment_pct") or {}
+    out += ["", "## Sentiment" + (" (platform ratings)" if d.get("sentiment_basis") == "ratings" else ""), f"Positive {sp.get('positive', '?')}%, neutral {sp.get('neutral', '?')}%, negative {sp.get('negative', '?')}%"]
+    out += ["", "## Feature requests"] + _bullets(d["feature_requests"], lambda f: f"{f['request']} ({f['mentions']} mentions)")
+    out += ["", "## Who is affected"] + _bullets(d["segments"], lambda x: f"**{x['segment']}**: {x['main_pain']}")
+    return "\n".join(out + ["", "## Opportunity gaps"]
+                     + _bullets(d["opportunity_gaps"], lambda g: f"**{g['gap']}**: {g['evidence']} Idea: {g['idea']}"))
+
+
+# ======================= market sizing =======================
+class SizeInput(BaseModel):
+    label: str = Field(description="e.g. 'US households owning home gym equipment'")
+    value: float = Field(description="The number used in the product, as a plain number (0.12 for 12%)")
+    unit: str = Field(description="households, USD per year, %, ...")
+    source_url: str | None
+
+
+class SizeLevel(BaseModel):
+    value_usd: float = Field(description="Your stated result in USD per year")
+    inputs: list[SizeInput] = Field(description="Factors whose PRODUCT equals value_usd (e.g. users x share x annual spend)")
+    method: str = Field(description="One sentence: top-down or bottom-up and why")
+
+
+class GrowthPoint(BaseModel):
+    year: int
+    value_usd: float
+    forecast: bool
+    source_url: str | None
+
+
+class Growth(BaseModel):
+    cagr_pct: float | None
+    points: list[GrowthPoint] = Field(description="Historical and forecast market size by year, oldest first")
+
+
+class Scenario(BaseModel):
+    case: Literal["bear", "base", "bull"]
+    year: int
+    value_usd: float
+    assumption: str
+
+
+class MarketSizing(BaseModel):
+    definition: str = Field(description="Exactly what is being sized")
+    geography: str
+    year: int
+    tam: SizeLevel
+    sam: SizeLevel
+    som: SizeLevel
+    growth: Growth
+    scenarios: list[Scenario] = Field(description="Exactly one bear, one base and one bull case")
+    confidence: int = Field(description="0-100: how well the sources support these numbers")
+    caveats: list[str]
+
+
+def _sizing_post(d: dict) -> dict:
+    """The shown number is the product of the sourced inputs; a stated value >15% away from it is flagged."""
+    out = dict(d)
+    for k in ("tam", "sam", "som"):
+        lv = dict(d[k])
+        prod = 1.0
+        for i in lv["inputs"]:
+            prod *= i["value"]
+        lv["computed_usd"] = round(prod, 2) if lv["inputs"] else None
+        stated = lv["value_usd"] or 0
+        lv["check"] = "ok" if lv["computed_usd"] and stated and abs(lv["computed_usd"] - stated) <= 0.15 * abs(stated) else "mismatch"
+        out[k] = lv
+    return out
+
+
+def usd(v) -> str:
+    if v is None:
+        return "unknown"
+    for n, unit in ((1e12, "T"), (1e9, "B"), (1e6, "M"), (1e3, "K")):
+        if abs(v) >= n:
+            return f"${v / n:.1f}{unit}"
+    return f"${v:,.0f}"
+
+
+def _src_link(u) -> str:
+    return f" ([source]({u}))" if (u or "").startswith("http") else ""
+
+
+def _sizing_md(d: dict) -> str:
+    out = [f"# Market sizing: {d['definition']}", "",
+           f"**Geography**: {d['geography']}, **Year**: {d['year']}, **Confidence**: {d['confidence']}/100", ""]
+    for k in ("tam", "sam", "som"):
+        lv = d[k]
+        out += [f"## {k.upper()}: {usd(lv.get('computed_usd') or lv['value_usd'])}"
+                + (" (check: the stated value differs from the product of the inputs)" if lv.get("check") == "mismatch" else ""),
+                lv["method"], ""]
+        out += [f"- {i['label']}: {i['value']:,} {i['unit']}{_src_link(i.get('source_url'))}" for i in lv["inputs"]] + [""]
+    g = d["growth"]
+    out += ["## Growth" + (f" (CAGR {g['cagr_pct']}%)" if g.get("cagr_pct") is not None else "")]
+    out += [f"- {p['year']}: {usd(p['value_usd'])}{' (forecast)' if p['forecast'] else ''}" for p in g["points"]]
+    out += ["", "## Scenarios"] + [f"- **{x['case']}** ({x['year']}): {usd(x['value_usd'])}. {x['assumption']}" for x in d["scenarios"]]
+    return "\n".join(out + ["", "## Caveats"] + _bullets(d["caveats"]))
+
+
+# ======================= opportunity =======================
+class OppSegment(BaseModel):
+    segment: str
+    need: str
+    demand: int = Field(description="1-10: evidence of demand")
+    competition: int = Field(description="1-10: how crowded it is")
+    evidence: str
+    source_url: str | None
+
+
+class OppGap(BaseModel):
+    gap: str
+    why_now: str
+    target_user: str
+    evidence: str
+    source_url: str | None
+
+
+class Watch(BaseModel):
+    name: str
+    threat: int = Field(description="1-5")
+    why: str
+
+
+class Risk(BaseModel):
+    risk: str
+    likelihood: int = Field(description="1-5")
+    impact: int = Field(description="1-5")
+    mitigation: str
+
+
+class Recommendation(BaseModel):
+    call: Literal["go", "conditional", "no-go"]
+    confidence: int = Field(description="0-100")
+    rationale: str
+    first_steps: list[str]
+
+
+class Opportunity(BaseModel):
+    thesis: str = Field(description="The idea or market entry being evaluated, restated precisely")
+    summary: str
+    segments: list[OppSegment]
+    gaps: list[OppGap]
+    competitors_to_watch: list[Watch]
+    risks: list[Risk]
+    recommendation: Recommendation
+
+
+def _opportunity_post(d: dict) -> dict:
+    segs = [{**x, "score": x["demand"] * (11 - x["competition"])} for x in d["segments"]]
+    return {**d, "segments": sorted(segs, key=lambda x: -x["score"])}
+
+
+def _opportunity_md(d: dict) -> str:
+    r = d["recommendation"]
+    out = [f"# Opportunity report: {d['thesis']}", "", f"**Call**: {r['call'].upper()} ({r['confidence']}% confidence)", "",
+           r["rationale"], "", d["summary"], "", "## Segments", "",
+           "| Segment | Need | Demand | Competition | Score |", "|---|---|---|---|---|"]
+    out += [f"| {x['segment']} | {x['need']} | {x['demand']}/10 | {x['competition']}/10 | {x.get('score', '')} |" for x in d["segments"]]
+    out += ["", "## Gaps"] + _bullets(d["gaps"], lambda g: f"**{g['gap']}** for {g['target_user']}. Why now: {g['why_now']}")
+    out += ["", "## Competitors to watch"] + _bullets(d["competitors_to_watch"], lambda w: f"**{w['name']}** (threat {w['threat']}/5): {w['why']}")
+    out += ["", "## Risks", "", "| Risk | Likelihood | Impact | Mitigation |", "|---|---|---|---|"]
+    out += [f"| {x['risk']} | {x['likelihood']}/5 | {x['impact']}/5 | {x['mitigation']} |" for x in d["risks"]]
+    return "\n".join(out + ["", "## First steps"] + [f"{i}. {x}" for i, x in enumerate(r["first_steps"], 1)])
+
+
 # ======================= registry =======================
 @dataclass(frozen=True)
 class Playbook:
@@ -437,12 +767,18 @@ class Playbook:
     page_chars: int = 12_000
     evidence_budget: int = 120_000
     min_claims: int = 15
+    post: Callable[[dict], dict] | None = None   # server-side maths on the LLM output (shares, products, scores)
+    coverage: tuple = ()                         # (label, source topics) pairs for research completeness
+
+
+BRIEF_COVERAGE = (("Official sources", ("pricing", "products", "models", "docs", "changelog", "blog")), ("News", ("news",)),
+                  ("Competitors", ("competitors",)))
 
 
 DEEP = dict(max_tasks=8, fresh_per_task=6, scrapes_per_task=4, page_chars=15_000, evidence_budget=220_000, min_claims=30)
 
 PLAYBOOKS: dict[str, Playbook] = {
-    "brief": Playbook("brief", "Brief", ""),
+    "brief": Playbook("brief", "Brief", "", coverage=BRIEF_COVERAGE),
     "profile": Playbook(
         "profile", "Competitor profile",
         "PLAYBOOK competitor profile: for EACH company plan tasks for its homepage/positioning, pricing page, features/product, "
@@ -455,7 +791,8 @@ PLAYBOOKS: dict[str, Playbook] = {
         "Summarise the competitive landscape from the per-company profiles: one landscape paragraph, a side-by-side comparison "
         "table, a positioning map on the two most meaningful axes with its interpretation, 3-5 takeaways and underserved "
         "opportunities. " + SHARED_RULES,
-        _profile_md, _profile_company_md, **DEEP),
+        _profile_md, _profile_company_md, coverage=(("Official pages", ("products", "pricing", "docs", "changelog", "blog")),
+                                                    ("Reviews", ("reviews",)), ("News", ("news",))), **DEEP),
     "pricing": Playbook(
         "pricing", "Pricing teardown",
         "PLAYBOOK pricing teardown: for EACH company plan tasks for its official pricing page, docs on rate limits/quotas/"
@@ -468,7 +805,8 @@ PLAYBOOKS: dict[str, Playbook] = {
         "effort) and the one thing. Judge only what the pages show. " + SHARED_RULES,
         "Compare the per-company teardowns: a side-by-side comparison matrix, three realistic cost scenarios costed per company "
         "from published prices, insights, and the single highest-leverage recommendation. " + SHARED_RULES,
-        _pricing_md, _pricing_company_md, **DEEP),
+        _pricing_md, _pricing_company_md, coverage=(("Pricing pages", ("pricing",)), ("Docs and limits", ("docs",)),
+                                                    ("Price changes", ("changelog", "news"))), **DEEP),
     "battlecard": Playbook(
         "battlecard", "Battlecard",
         "PLAYBOOK battlecard (first company vs second): plan tasks for each company's pricing, features/capabilities, support/SLA "
@@ -481,8 +819,59 @@ PLAYBOOKS: dict[str, Playbook] = {
         "(competitor), following the competitor-page templates: TL;DR, paragraph comparisons per category, a feature table "
         "beyond checkmarks, 1-5 ratings, pricing with total cost and a worked value comparison, where each wins, migration, "
         "objection handling, landmine questions and sourced proof points. " + SHARED_RULES,
-        _battlecard_md, None, max_companies=2, **DEEP),
+        _battlecard_md, None, max_companies=2, coverage=(("Official pages", ("pricing", "products", "docs")),
+                                                         ("Reviews and community", ("reviews", "forums")),
+                                                         ("Comparisons", ("competitors", "news"))), **DEEP),
+    "landscape": Playbook(
+        "landscape", "Market landscape",
+        "PLAYBOOK market landscape: plan tasks for 'top companies in <market>' and '<market> alternatives' lists, G2/Capterra "
+        "category pages (include_domains g2.com, capterra.com), industry and analyst reports, recent funding and acquisitions news, "
+        "and the official sites of the 3-4 biggest players. Mark each task's topic as market, reviews, news or products.",
+        None, Landscape, "",
+        "Map the market: segment it into 3-6 categories with their companies and stage, score the most important 6-10 companies "
+        "on 4-6 decisive criteria (1-5), write a SWOT for a new entrant, list trends with evidence, emerging players and "
+        "takeaways. " + SHARED_RULES,
+        _landscape_md, post=_landscape_post,
+        coverage=(("Market reports and lists", ("market",)), ("Review directories", ("reviews",)),
+                  ("Company sites", ("products", "pricing")), ("News and funding", ("news",))), **DEEP),
+    "pain": Playbook(
+        "pain", "Customer pain",
+        "PLAYBOOK customer pain: plan tasks that collect real user voices: Reddit (include_domains reddit.com), Hacker News "
+        "(news.ycombinator.com), review sites (g2.com, capterra.com, trustpilot.com), app-store reviews, community forums and "
+        "YouTube reviews, with queries like '<product> complaints', '<product> alternatives why switch', '<product> review cons'. "
+        "Mark topics as reviews or forums.",
+        None, CustomerPain, "",
+        "From the user voices, group complaints into 5-10 themes with honest mention counts (count distinct sourced comments, do "
+        "not invent), severity and verbatim quotes with their source; add feature requests, who is affected, sentiment counts and "
+        "opportunity gaps with a concrete idea each. " + SHARED_RULES,
+        _pain_md, post=_pain_post,
+        coverage=(("Review sites", ("reviews",)), ("Forums and communities", ("forums",)), ("News", ("news",))), **DEEP),
+    "sizing": Playbook(
+        "sizing", "Market sizing",
+        "PLAYBOOK market sizing: plan tasks for market-size and forecast reports ('<market> market size', '<market> CAGR'), "
+        "government and statistics bodies, population/customer counts for the target segment, average spend or pricing pages "
+        "of leading vendors, and public company filings. Mark topics as market, pricing or news.",
+        None, MarketSizing, "",
+        "Size the market. Express TAM, SAM and SOM each as factors whose product is the value (for example customers x share x "
+        "annual spend), with a source per input where one exists; give growth points by year (history and forecast, flagged), a "
+        "bear/base/bull scenario, a confidence score and caveats. Never state a number without its inputs. " + SHARED_RULES,
+        _sizing_md, post=_sizing_post,
+        coverage=(("Market-size reports", ("market",)), ("Customer counts and pricing", ("pricing", "products")),
+                  ("News and filings", ("news",))), **DEEP),
+    "opportunity": Playbook(
+        "opportunity", "Opportunity",
+        "PLAYBOOK opportunity: plan tasks for the target market's size and growth, existing competitors and their pricing, "
+        "user complaints and unmet needs (reddit.com, g2.com, forums), and recent trends or regulation. Mark topics as market, "
+        "competitors, reviews, forums or news.",
+        None, Opportunity, "",
+        "Evaluate the opportunity honestly: segments with demand and competition scores (1-10) and evidence, gaps with why now "
+        "and who, competitors to watch, risks scored by likelihood and impact with mitigations, and a go / conditional / no-go "
+        "call with confidence, rationale and first steps. " + SHARED_RULES,
+        _opportunity_md, post=_opportunity_post,
+        coverage=(("Market data", ("market",)), ("Competitors", ("competitors", "products", "pricing")),
+                  ("User voices", ("reviews", "forums")), ("Trends and news", ("news",))), **DEEP),
 }
+
 
 
 def get(pid: str | None) -> Playbook:
@@ -524,9 +913,19 @@ def company_context(e: dict, entities: list[dict], sources: list[dict], evidence
 
 
 async def build(pb: Playbook, state: dict, changes: list[dict]) -> dict:
-    """Stage 1: one call per company (parallel). Stage 2: a summary over their results."""
+    """Stage 1: one call per company (parallel). Stage 2: a summary over their results.
+    Market-level playbooks (no company_schema) make a single call over every claim and page."""
     entities = (state.get("entities") or [{"name": state["user_request"], "domain": None}])[:pb.max_companies]
     req = state["user_request"]
+    if not pb.company_schema:
+        out = await llm.structured(pb.summary_schema, [
+            ("system", "You are a market-research analyst. " + pb.summary_prompt),
+            ("user", f"Request: {req}\n\nCompanies mentioned: {entities}\n\nClaims (with sources):\n"
+                     f"{json.dumps(state['evidence'], ensure_ascii=False)}\n\nDetected changes:\n"
+                     f"{json.dumps(changes, ensure_ascii=False, default=str)[:20_000]}\n\nPages:\n{_digest(state['sources'], 150_000, pb.page_chars)}"),
+        ], role="strong")
+        data = out.model_dump()
+        return pb.post(data) if pb.post else data
 
     async def one(e: dict) -> dict:
         srcs, claims = company_context(e, entities, state["sources"], state["evidence"])
@@ -545,12 +944,13 @@ async def build(pb: Playbook, state: dict, changes: list[dict]) -> dict:
                  f"{json.dumps(companies, ensure_ascii=False)}\n\nDetected changes:\n{json.dumps(changes, ensure_ascii=False, default=str)[:30_000]}"
                  + (f"\n\nPages:\n{_digest(state['sources'], 60_000, 4000)}" if pb.id == "battlecard" else "")),
     ], role="strong")
-    return {"companies": companies, **summary.model_dump()}
+    data = {"companies": companies, **summary.model_dump()}
+    return pb.post(data) if pb.post else data
 
 
 def files(pb: Playbook, data: dict) -> list[dict]:
     """Downloadable skill-format documents: one per company when the playbook has per-company docs."""
     slug = lambda s: re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
-    if pb.company_markdown:
+    if pb.company_markdown and data.get("companies"):
         return [{"name": f"{slug(c['name'])}.md", "markdown": pb.company_markdown(c)} for c in data["companies"]]
     return [{"name": f"{pb.id}.md", "markdown": pb.to_markdown(data)}]

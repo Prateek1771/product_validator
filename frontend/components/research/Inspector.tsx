@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { ActionTag, Blocks, Empty, Favicon, ImpactTag, Tag } from "@/components/term";
 import { domain } from "@/lib/format";
+import { qualityTier, sourceQuality } from "@/lib/quality";
 import type { Change } from "@/lib/types";
 import type { RunState } from "./useRun";
 
@@ -43,6 +44,11 @@ export function Inspector({ run }: { run: RunState }) {
   );
 }
 
+const TIER_TONE = { high: "up", medium: "amber", low: "down" } as const;
+function QualityTag({ q }: { q: number }) {
+  return <span title="Heuristic source quality: official pages score highest, forums lowest"><Tag tone={TIER_TONE[qualityTier(q)]}>q{q}</Tag></span>;
+}
+
 function Sources({ run }: { run: RunState }) {
   if (!run.sources.length) return <Empty title="No sources yet">Appears as the research agent searches.</Empty>;
   return (
@@ -58,6 +64,7 @@ function Sources({ run }: { run: RunState }) {
             <p className="mt-1 line-clamp-2 text-[13px] leading-snug group-hover:text-amber">{s.title || s.url}</p>
             <div className="mt-1.5 flex flex-wrap gap-1">
               <Tag>{s.type}</Tag>
+              <QualityTag q={sourceQuality(s, run.report?.methodology)} />
               {s.crawled && <Tag tone="up">crawled</Tag>}
               {s.relevance === "high" && <Tag tone="amber">high rel</Tag>}
               {s.provider && <Tag>{PROVIDER[s.provider]}</Tag>}

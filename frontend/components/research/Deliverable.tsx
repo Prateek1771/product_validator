@@ -1,45 +1,31 @@
 "use client";
 
-import { Download, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Blocks, Tag } from "@/components/term";
 import { domain } from "@/lib/format";
-import type { Battlecard, CompanyPricing, CompanyProfile, CompetitorProfiles, Deliverable, PricingTeardown, Row, Verdict } from "@/lib/types";
+import { deliverableCharts } from "@/lib/report-model";
+import type { Battlecard, CompanyPricing, CompanyProfile, CompetitorProfiles, CustomerPain, Deliverable, Landscape, MarketSizing,
+  Opportunity, PricingTeardown, Row, Verdict } from "@/lib/types";
+import { ChartGrid, money } from "./charts";
 
 // Reports saved before the skill-template schemas miss most fields: every read goes through these.
 const arr = <T,>(x: T[] | null | undefined): T[] => (Array.isArray(x) ? x : []);
 const txt = (x: unknown) => (typeof x === "string" && x.trim() ? x : "");
 
 export function DeliverableView({ d }: { d: Deliverable }) {
-  return (
-    <div className="space-y-5">
-      <Exports d={d} />
-      {d.playbook === "profile" ? <ProfileView d={d.data} /> : d.playbook === "pricing" ? <PricingView d={d.data} /> : <BattlecardView d={d.data} />}
-    </div>
-  );
+  const charts = <ChartGrid specs={deliverableCharts(d)} />;
+  switch (d.playbook) {
+    case "profile": return <ProfileView d={d.data} charts={charts} />;
+    case "pricing": return <PricingView d={d.data} charts={charts} />;
+    case "battlecard": return <BattlecardView d={d.data} charts={charts} />;
+    case "landscape": return <LandscapeView d={d.data} charts={charts} />;
+    case "pain": return <PainView d={d.data} charts={charts} />;
+    case "sizing": return <SizingView d={d.data} charts={charts} />;
+    case "opportunity": return <OpportunityView d={d.data} charts={charts} />;
+  }
 }
 
-function save(name: string, text: string, type: string) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([text], { type }));
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function Exports({ d }: { d: Deliverable }) {
-  const btn = "inline-flex h-7 items-center gap-1.5 rounded-sm border border-line-2 px-2 font-mono text-[11px] text-dim transition hover:border-amber hover:text-amber";
-  return (
-    <div className="flex flex-wrap items-center gap-1.5" data-print-hide>
-      <span className="label mr-1">export</span>
-      <button className={btn} onClick={() => save(`${d.playbook}-data.json`, JSON.stringify(d.data, null, 2), "application/json")}>
-        <Download className="size-3" /> data.json
-      </button>
-      {arr(d.files).map((f) => (
-        <button key={f.name} className={btn} onClick={() => save(f.name, f.markdown, "text/markdown")}><Download className="size-3" /> {f.name}</button>
-      ))}
-    </div>
-  );
-}
+type Slot = { charts: React.ReactNode };
 
 // ---------- primitives ----------
 const Label = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => <p className={`label ${className}`}>{children}</p>;
@@ -109,41 +95,10 @@ function CompanyCard({ title, meta, children }: { title: string; meta?: React.Re
   );
 }
 
-const Grid2 = ({ children }: { children: React.ReactNode }) => <div className="grid gap-5 md:grid-cols-2">{children}</div>;
+const Grid2 = ({ children }: { children: React.ReactNode }) => <div className="grid gap-5 md:grid-cols-2 [&>*]:min-w-0">{children}</div>;
 
 // ---------- competitor profiles ----------
 const SENTIMENT = { positive: "up", negative: "down", mixed: "amber" } as const;
-const DOTS = ["fill-amber", "fill-info", "fill-up", "fill-violet", "fill-down"];
-
-function PositioningMap({ m }: { m: CompetitorProfiles["positioning_map"] | undefined }) {
-  const clamp = (v: number) => Math.max(0, Math.min(100, v));
-  const points = arr(m?.points);
-  if (!m || !points.length) return null;
-  return (
-    <figure className="rounded border border-line p-4">
-      <Label>positioning map</Label>
-      <p className="mt-2 font-mono text-[11px] text-dim">{m.y_axis.includes("→") ? m.y_axis : `↑ ${m.y_axis}`}</p>
-      <svg viewBox="-2 -2 104 104" className="mt-1 w-full max-w-[480px]" role="img"
-           aria-label={`Positioning map: ${m.x_axis} by ${m.y_axis}. ` + points.map((p) => `${p.name} at ${p.x}, ${p.y}`).join("; ")}>
-        <rect x="0" y="0" width="100" height="100" className="fill-panel-2 stroke-line" strokeWidth="0.4" />
-        <line x1="50" y1="0" x2="50" y2="100" className="stroke-line-2" strokeWidth="0.3" strokeDasharray="1.5 1.5" />
-        <line x1="0" y1="50" x2="100" y2="50" className="stroke-line-2" strokeWidth="0.3" strokeDasharray="1.5 1.5" />
-        {points.map((p, i) => {
-          const x = clamp(p.x), y = 100 - clamp(p.y);
-          return (
-            <g key={p.name}>
-              <circle cx={x} cy={y} r="2.2" className={DOTS[i % DOTS.length]} />
-              <text x={x + (x > 75 ? -3.5 : 3.5)} y={y + 1.3} textAnchor={x > 75 ? "end" : "start"} className="fill-fg font-mono" fontSize="3.6">{p.name}</text>
-            </g>
-          );
-        })}
-      </svg>
-      <p className="mt-1 max-w-[480px] text-right font-mono text-[11px] text-dim">{m.x_axis.includes("→") ? m.x_axis : `${m.x_axis} →`}</p>
-      {arr(m.interpretation).length > 0 && <Bullets items={m.interpretation} mark="◆" tone="text-amber" />}
-    </figure>
-  );
-}
-
 const GLANCE: [keyof CompanyProfile["at_a_glance"], string][] = [
   ["tagline", "tagline"], ["founded", "founded"], ["headquarters", "hq"], ["team_size", "team"], ["funding", "funding"],
   ["starting_price", "starts at"], ["free_tier", "free tier"],
@@ -245,6 +200,21 @@ function ProfileCompany({ c }: { c: CompanyProfile & OldProfile }) {
         </Grid2>
       )}
 
+      {arr(c.scorecard).length > 0 && (
+        <div>
+          <Label>scorecard</Label>
+          <ul className="mt-1.5 grid gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-2">
+            {arr(c.scorecard).map((x) => (
+              <li key={x.dimension} className="grid grid-cols-[150px_auto_1fr] items-baseline gap-2">
+                <span className="font-medium">{x.dimension}</span>
+                <Blocks value={x.score * 20} n={5} tone="up" label={`${x.dimension} ${x.score} of 5`} />
+                <span className="text-dim">{x.note}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {c.content_signals && <div><Label>content strategy</Label><Chips items={[...arr(c.content_signals.content_types), ...arr(c.content_signals.focus_areas)]} /></div>}
 
       {arr(c.sources).length > 0 && (
@@ -259,18 +229,17 @@ function ProfileCompany({ c }: { c: CompanyProfile & OldProfile }) {
   );
 }
 
-function ProfileView({ d }: { d: CompetitorProfiles }) {
+function ProfileView({ d, charts }: { d: CompetitorProfiles } & Slot) {
   const companies = arr(d.companies);
   return (
     <div className="space-y-5">
       <Lead title="landscape">{d.landscape}</Lead>
+      {charts}
       {arr(d.comparison).length > 0 && <section><Label>side-by-side comparison</Label><Matrix names={companies.map((c) => c.name)} rows={d.comparison} /></section>}
-      <div className="grid gap-3 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <PositioningMap m={d.positioning_map} />
-        <div className="space-y-3">
-          <Box title="key takeaways"><Bullets items={arr(d.takeaways)} /></Box>
-          <Box title="gaps & opportunities" tone="text-up"><Bullets items={arr(d.opportunities)} mark="→" tone="text-up" /></Box>
-        </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {arr(d.positioning_map?.interpretation).length > 0 && <Box title="what the map shows"><Bullets items={d.positioning_map.interpretation} mark="◆" tone="text-amber" /></Box>}
+        <Box title="key takeaways"><Bullets items={arr(d.takeaways)} /></Box>
+        <Box title="gaps & opportunities" tone="text-up"><Bullets items={arr(d.opportunities)} mark="→" tone="text-up" /></Box>
       </div>
       {companies.map((c) => <ProfileCompany key={c.name} c={c} />)}
     </div>
@@ -358,11 +327,12 @@ function PricingCompany({ c }: { c: CompanyPricing & { page_rubric?: Verdict[] }
   );
 }
 
-function PricingView({ d }: { d: PricingTeardown }) {
+function PricingView({ d, charts }: { d: PricingTeardown } & Slot) {
   const companies = arr(d.companies), names = companies.map((c) => c.name);
   return (
     <div className="space-y-5">
       <Lead title="recommendation">{d.recommendation}</Lead>
+      {charts}
       {arr(d.comparison).length > 0 && <section><Label>side by side</Label><Matrix names={names} rows={d.comparison} /></section>}
       {arr(d.cost_scenarios).length > 0 && <section><Label>cost scenarios</Label><Matrix names={names} rows={d.cost_scenarios} first="scenario" /></section>}
       <Box title="insights"><Bullets items={arr(d.insights)} /></Box>
@@ -374,7 +344,7 @@ function PricingView({ d }: { d: PricingTeardown }) {
 // ---------- battlecard ----------
 type OldBattle = { pricing_notes?: string; pick_subject_if?: string[]; pick_competitor_if?: string[] };
 
-function BattlecardView({ d }: { d: Battlecard & OldBattle }) {
+function BattlecardView({ d, charts }: { d: Battlecard & OldBattle } & Slot) {
   const sides = arr(d.companies);
   const find = (n: string, i: number) => sides.find((x) => x.name === n) ?? sides[i];
   const S = find(d.subject, 0), C = find(d.competitor, 1);
@@ -383,6 +353,7 @@ function BattlecardView({ d }: { d: Battlecard & OldBattle }) {
   return (
     <div className="space-y-5">
       <Lead title={`${d.subject} vs ${d.competitor} · tl;dr`}>{d.tldr}</Lead>
+      {charts}
 
       <div className="grid gap-px overflow-hidden rounded border border-line bg-line md:grid-cols-2">
         <div className="bg-panel p-4"><Label className="text-up">where {d.subject} wins</Label><Bullets items={arr(d.subject_wins)} mark="+" tone="text-up" /></div>
@@ -486,6 +457,210 @@ function BattlecardView({ d }: { d: Battlecard & OldBattle }) {
       )}
 
       {arr(d.proof_points).length > 0 && <Box title="proof points"><Bullets items={arr<Pt>(d.proof_points).map(sourced)} mark="§" /></Box>}
+    </div>
+  );
+}
+
+// ---------- market landscape ----------
+const STAGE_STYLE = {
+  leader: "border-amber bg-amber text-amber-ink", challenger: "border-amber/60 bg-amber-soft text-fg",
+  emerging: "border-up/50 bg-up-soft text-fg", niche: "border-line-2 bg-panel-2 text-dim",
+} as const;
+const DIRECTION_MARK = { up: ["▲", "text-up"], down: ["▼", "text-down"], flat: ["●", "text-dim"] } as const;
+
+function LandscapeView({ d, charts }: { d: Landscape } & Slot) {
+  return (
+    <div className="space-y-5">
+      <Lead title={`market landscape · ${d.market}`}>{d.overview}</Lead>
+      <section>
+        <div className="flex flex-wrap items-center gap-3">
+          <Label>market map</Label>
+          <span className="flex flex-wrap gap-2 font-mono text-[10.5px] text-dim">
+            {(Object.keys(STAGE_STYLE) as (keyof typeof STAGE_STYLE)[]).map((k) => (
+              <span key={k} className="inline-flex items-center gap-1"><span className={`size-2.5 rounded-[2px] border ${STAGE_STYLE[k]}`} />{k}</span>
+            ))}
+          </span>
+        </div>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {arr(d.categories).map((c) => (
+            <div key={c.name} className="chart rounded border border-line p-3">
+              <h3 className="font-semibold">{c.name}</h3>
+              <p className="mt-0.5 text-[12.5px] text-dim">{c.description}</p>
+              <ul className="mt-3 flex flex-wrap gap-1.5">
+                {arr(c.companies).map((co) => (
+                  <li key={co.name} title={co.one_liner} className={`rounded-sm border px-2 py-1 text-[12px] font-medium ${STAGE_STYLE[co.stage] ?? STAGE_STYLE.niche}`}>{co.name}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+      {charts}
+      <section>
+        <Label>SWOT for a new entrant</Label>
+        <div className="mt-2 grid gap-px overflow-hidden rounded border border-line bg-line md:grid-cols-2">
+          {([["strengths", "text-up", "+"], ["weaknesses", "text-down", "−"], ["opportunities", "text-info", "→"], ["threats", "text-amber", "!"]] as const).map(([k, tone, mark]) => (
+            <div key={k} className="bg-panel p-4"><Label className={tone}>{k}</Label><Bullets items={arr(d.swot?.[k])} mark={mark} tone={tone} /></div>
+          ))}
+        </div>
+      </section>
+      <Grid2>
+        <Box title="trends">
+          <ul className="mt-1.5 space-y-2 text-[13.5px]">
+            {arr(d.trends).map((t, i) => {
+              const [mark, tone] = DIRECTION_MARK[t.direction] ?? DIRECTION_MARK.flat;
+              return <li key={i} className="flex gap-2"><span className={`font-mono ${tone}`}>{mark}</span><span><span className="font-medium">{t.trend}</span> <span className="text-dim">{t.evidence}</span><SourceLink url={t.source_url} /></span></li>;
+            })}
+          </ul>
+        </Box>
+        <div className="space-y-3">
+          <Box title="emerging players" tone="text-up"><Bullets items={arr(d.emerging).map((e) => <><span className="font-medium">{e.name}:</span> <span className="text-dim">{e.why}</span></>)} mark="◆" tone="text-up" /></Box>
+          <Box title="takeaways"><Bullets items={arr(d.takeaways)} /></Box>
+        </div>
+      </Grid2>
+    </div>
+  );
+}
+
+// ---------- customer pain ----------
+const PAIN_TONE = { negative: "down", mixed: "amber", positive: "up" } as const;
+
+function PainView({ d, charts }: { d: CustomerPain } & Slot) {
+  return (
+    <div className="space-y-5">
+      <Lead title={`customer pain · ${d.subject}`}>{d.summary}</Lead>
+      {charts}
+      <section>
+        <Label>pain points, biggest first</Label>
+        <div className="mt-2 grid gap-3 md:grid-cols-2">
+          {arr(d.themes).map((t) => (
+            <article key={t.theme} className="chart rounded border border-line p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-semibold">{t.theme}</h3>
+                <Tag tone={PAIN_TONE[t.sentiment] ?? "dim"}>{t.sentiment}</Tag>
+                <span className="ml-auto font-mono text-[12px] text-amber">{t.share_pct != null ? `${t.share_pct}%` : `${t.mentions}×`}</span>
+              </div>
+              <p className="mt-1 flex items-center gap-2 font-mono text-[11px] text-faint">
+                {t.mentions} mentions · severity <Blocks value={t.severity * 20} n={5} tone="down" label={`severity ${t.severity} of 5`} />
+              </p>
+              <p className="mt-2 text-[13.5px]">{t.summary}</p>
+              {arr(t.quotes).slice(0, 3).map((q, i) => (
+                <blockquote key={i} className="mt-2 rounded-sm bg-panel-2 px-3 py-2 text-[12.5px]">
+                  <span className="text-amber">“</span>{q.quote}<span className="text-amber">”</span>
+                  <span className="mt-0.5 block font-mono text-[10.5px] text-faint">{q.where}<SourceLink url={q.source_url} /></span>
+                </blockquote>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+      <Grid2>
+        <Box title="who is affected"><Bullets items={arr(d.segments).map((x) => <><span className="font-medium">{x.segment}:</span> <span className="text-dim">{x.main_pain}</span></>)} /></Box>
+        <Box title="opportunity gaps" tone="text-up">
+          <ul className="mt-1.5 space-y-2.5 text-[13.5px]">
+            {arr(d.opportunity_gaps).map((g) => (
+              <li key={g.gap}><span className="font-medium">{g.gap}</span><span className="block text-dim">{g.evidence}</span><span className="block"><span className="font-mono text-[11px] text-up">IDEA </span>{g.idea}</span></li>
+            ))}
+          </ul>
+        </Box>
+      </Grid2>
+    </div>
+  );
+}
+
+// ---------- market sizing ----------
+function SizingView({ d, charts }: { d: MarketSizing } & Slot) {
+  return (
+    <div className="space-y-5">
+      <Lead title={`market sizing · ${d.geography} · ${d.year}`}>{d.definition}</Lead>
+      <p className="flex flex-wrap items-center gap-2 font-mono text-[12px] text-dim">
+        CONFIDENCE <Blocks value={d.confidence} tone="up" label="confidence" /> <span className="text-fg">{d.confidence}/100</span>
+      </p>
+      {charts}
+      <section>
+        <Label>how each number is built</Label>
+        <div className="mt-2 grid gap-3 lg:grid-cols-3">
+          {(["tam", "sam", "som"] as const).map((k) => {
+            const lv = d[k];
+            if (!lv) return null;
+            const shown = lv.computed_usd ?? lv.value_usd;
+            return (
+              <article key={k} className="chart rounded border border-line p-4">
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className="font-mono text-[13px] font-semibold">{k.toUpperCase()}</h3>
+                  {lv.check && <Tag tone={lv.check === "ok" ? "up" : "down"}>{lv.check === "ok" ? "maths checks out" : "stated value differs"}</Tag>}
+                </div>
+                <p className="mt-1 font-mono text-2xl font-semibold text-amber">{money(shown)}</p>
+                {lv.check === "mismatch" && <p className="font-mono text-[11px] text-down">stated {money(lv.value_usd)}, inputs multiply to {money(lv.computed_usd)}</p>}
+                <p className="mt-2 text-[13px] text-dim">{lv.method}</p>
+                <ul className="mt-3 space-y-1.5 border-t border-line pt-3 text-[12.5px]">
+                  {arr(lv.inputs).map((i, n) => (
+                    <li key={i.label} className="grid grid-cols-[14px_1fr] gap-1">
+                      <span className="font-mono text-faint">{n ? "×" : ""}</span>
+                      <span><span className="font-mono text-fg">{i.value.toLocaleString("en-US")}</span> <span className="text-dim">{i.unit}</span> · {i.label}<SourceLink url={i.source_url} /></span>
+                    </li>
+                  ))}
+                  <li className="grid grid-cols-[14px_1fr] gap-1 border-t border-line pt-1.5"><span className="font-mono text-faint">=</span><span className="font-mono text-amber">{money(lv.computed_usd)}</span></li>
+                </ul>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+      <Grid2>
+        <section>
+          <Label>scenarios</Label>
+          <Table head={["case", "year", "market", "assumption"]} rows={arr(d.scenarios).map((s) => [s.case, s.year, <span key="v" className="font-mono text-amber">{money(s.value_usd)}</span>, <span key="a" className="text-dim">{s.assumption}</span>])} />
+        </section>
+        <Box title="caveats" tone="text-amber"><Bullets items={arr(d.caveats)} mark="!" tone="text-amber" /></Box>
+      </Grid2>
+    </div>
+  );
+}
+
+// ---------- opportunity ----------
+const CALL = { go: ["up", "GO"], conditional: ["amber", "GO, WITH CONDITIONS"], "no-go": ["down", "NO-GO"] } as const;
+
+function OpportunityView({ d, charts }: { d: Opportunity } & Slot) {
+  const r = d.recommendation;
+  const [tone, label] = CALL[r?.call] ?? CALL.conditional;
+  return (
+    <div className="space-y-5">
+      {r && (
+        <section className="chart rounded border border-amber/50 bg-amber-soft p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Label className="text-amber">recommendation</Label>
+            <Tag tone={tone} className="h-6 px-2 text-[12px]">{label}</Tag>
+            <span className="ml-auto flex items-center gap-2 font-mono text-[12px]">confidence <Blocks value={r.confidence} tone="up" label="confidence" /> {r.confidence}%</span>
+          </div>
+          <p className="mt-2 text-[15px]">{r.rationale}</p>
+          {arr(r.first_steps).length > 0 && <ol className="mt-3 grid gap-1.5 text-[13.5px] md:grid-cols-2">{r.first_steps.map((s, i) => <li key={i} className="flex gap-2"><span className="font-mono text-amber">{i + 1}.</span>{s}</li>)}</ol>}
+        </section>
+      )}
+      <Lead title={`opportunity · ${d.thesis}`}>{d.summary}</Lead>
+      {charts}
+      <section>
+        <Label>segments, best first</Label>
+        <Table head={["segment", "need", "demand", "competition", "score", "evidence"]} minW={720}
+               rows={arr(d.segments).map((s) => [s.segment, <span key="n" className="text-dim">{s.need}</span>, `${s.demand}/10`, `${s.competition}/10`,
+                 <span key="s" className="font-mono text-amber">{s.score ?? "-"}</span>, <span key="e" className="text-[12px] text-dim">{s.evidence}<SourceLink url={s.source_url} /></span>])} />
+      </section>
+      <Grid2>
+        <Box title="gaps in the market" tone="text-up">
+          <ul className="mt-1.5 space-y-2.5 text-[13.5px]">
+            {arr(d.gaps).map((g) => <li key={g.gap}><span className="font-medium">{g.gap}</span> <span className="text-dim">for {g.target_user}.</span><span className="block text-dim">Why now: {g.why_now}<SourceLink url={g.source_url} /></span></li>)}
+          </ul>
+        </Box>
+        <Box title="competitors to watch">
+          <ul className="mt-1.5 space-y-2 text-[13.5px]">
+            {arr(d.competitors_to_watch).map((w) => <li key={w.name} className="flex flex-wrap items-center gap-2"><span className="font-medium">{w.name}</span><Blocks value={w.threat * 20} n={5} tone="down" label={`threat ${w.threat} of 5`} /><span className="basis-full text-dim">{w.why}</span></li>)}
+          </ul>
+        </Box>
+      </Grid2>
+      <section>
+        <Label>risks</Label>
+        <Table head={["risk", "likelihood", "impact", "mitigation"]} rows={arr(d.risks).map((k) => [k.risk, `${k.likelihood}/5`, `${k.impact}/5`, <span key="m" className="text-dim">{k.mitigation}</span>])} />
+      </section>
     </div>
   );
 }
